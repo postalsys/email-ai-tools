@@ -1,0 +1,74 @@
+{
+    "id": "AAAADQAABlw",
+    "uid": 1628,
+    "path": "INBOX",
+    "date": "2022-07-06T14:12:30.000Z",
+    "flags": ["\\Seen"],
+    "size": 4400,
+    "subject": "Re: proovikiri",
+    "from": {
+        "name": "Andris Reinman",
+        "address": "andris.reinman@gmail.com"
+    },
+    "replyTo": [
+        {
+            "name": "Andris Reinman",
+            "address": "andris.reinman@gmail.com"
+        }
+    ],
+    "sender": {
+        "name": "Andris Reinman",
+        "address": "andris.reinman@gmail.com"
+    },
+    "to": [
+        {
+            "name": "andris",
+            "address": "andris@ekiri.ee"
+        }
+    ],
+    "messageId": "<A768E075-1C9F-4483-A04A-943FA920BFC5@gmail.com>",
+    "inReplyTo": "<CAPFU5tRb4fM+4d74kkb5bjGuFr7n3kFF_TNXK=67ki93CLzGFw@mail.gmail.com>",
+    "headers": {
+        "return-path": ["<andris.reinman@gmail.com>"],
+        "delivered-to": ["andris@ekiri.ee"],
+        "received": [
+            "from mail-lj1-f179.google.com (mail-lj1-f179.google.com [209.85.208.179]) (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits)) (No client certificate requested) by uvn-67-33.tll01.zonevs.eu (Postfix) with ESMTPS id 44342821FF for <andris@ekiri.ee>; Wed,  6 Jul 2022 17:12:33 +0300 (EEST)",
+            "by mail-lj1-f179.google.com with SMTP id w2so2284874ljj.7 for <andris@ekiri.ee>; Wed, 06 Jul 2022 07:12:33 -0700 (PDT)",
+            "from smtpclient.apple (39-152-191-90.dyn.estpak.ee. [90.191.152.39]) by smtp.gmail.com with ESMTPSA id z8-20020a05651c022800b0025d37955bc7sm947119ljn.74.2022.07.06.07.12.30 for <andris@ekiri.ee> (version=TLS1_2 cipher=ECDHE-ECDSA-AES128-GCM-SHA256 bits=128/128); Wed, 06 Jul 2022 07:12:31 -0700 (PDT)"
+        ],
+        "authentication-results": [
+            "uvn-67-33.tll01.zonevs.eu; dkim=pass reason=\"2048-bit key; insecure key\" header.d=gmail.com header.i=@gmail.com header.b=E9nmrfaB; dkim-adsp=pass; dkim-atps=neutral"
+        ],
+        "dkim-signature": [
+            "v=1; a=rsa-sha256; c=relaxed/relaxed; d=gmail.com; s=20210112; h=from:mime-version:subject:date:references:to:in-reply-to:message-id; bh=us7LzUXeWkaVy96MNsqMB7vDjhaZ9hRrGPgxXc9icYc=; b=E9nmrfaBGUMEisRJCJy674YfEQyu2oXIF/1E7AcyGAit26CPU+vfpL3XGXmMzwWKTd S+EjMUwCc4xn4wkmxYl3nxcd3EQr1XpIpp42fK4wEfaAt7Nb3Wp+uV1pBej6Slh2TgBf j7NWyea3gyh/m09OqKAijYesJYw9YGmo+6Y7lgiNFFuIeuJRUrg5htvc6eNzoSQfnIIl QiUptLnrFFfgMRsaBkIsd4ie1/1HnLoa7ngopIRVARKRrrCNRhTqkiM93BUf8nBUDjb7 QPh8PBzzGrVvA9nDLjlSsF8t0s8Nwk9f7HApzFKAra3dzv8VnFY6zQxBm26yCjnrCxbH 8dyA=="
+        ],
+        "x-google-dkim-signature": [
+            "v=1; a=rsa-sha256; c=relaxed/relaxed; d=1e100.net; s=20210112; h=x-gm-message-state:from:mime-version:subject:date:references:to :in-reply-to:message-id; bh=us7LzUXeWkaVy96MNsqMB7vDjhaZ9hRrGPgxXc9icYc=; b=0hw1EbIluZO7ZAuzBIRNVqHtNAHviTJ0RXDtefUWxyfjaaTnKkmnwPum49KIf5gGu+ J7r9tw4rGvQKLjmM1runJiZFZHq7afV3MmR4wGjjvLRA62MAdIcpAT5u8ElxjHf0nhhM OO7Yf+mYwqsB6KDeZQ5JF9LCNBvpe+TQpSXMlHANyWvh5Ofp6ugH+gLEx+8QIJHIcGBi 6cXu+pPb1GsE+M3bWY7DEiYeTDy6QQfxRZSdi9vSHFb4h/R8K6Z1/heJN+RlEGmUU2M7 fQbEuCcHfObhWMe5AmLfDXIlrx+wKxVyVxpafkLSiMQnRSvqhxVSWcUKjzr20TlHT/qH ca9g=="
+        ],
+        "x-gm-message-state": ["AJIora/2p0hYvgtQ3eBu7h9wBVVfY6UdVx4BO6QA32p0fTru+yWtItsi GdXLS5baocCqlr3JhbHd4ORKCa46iqRbZA=="],
+        "x-google-smtp-source": ["AGRyM1s3m/T3Exsg6pXn6DGV9dmrrt5GV7nTjah/wAyWp+fel/88cNszkKiPBCE/I3u1VEiSO1zJMw=="],
+        "x-received": [
+            "by 2002:a05:651c:1032:b0:25a:780b:7140 with SMTP id w18-20020a05651c103200b0025a780b7140mr23860776ljm.319.1657116752521; Wed, 06 Jul 2022 07:12:32 -0700 (PDT)"
+        ],
+        "from": ["Andris Reinman <andris.reinman@gmail.com>"],
+        "content-type": ["multipart/alternative; boundary=\"Apple-Mail=_650C0B0C-FF20-4BA0-B542-9025E8199E24\""],
+        "mime-version": ["1.0 (Mac OS X Mail 16.0 \\(3696.100.31\\))"],
+        "subject": ["Re: proovikiri"],
+        "date": ["Wed, 6 Jul 2022 17:12:30 +0300"],
+        "references": ["<CAPFU5tRb4fM+4d74kkb5bjGuFr7n3kFF_TNXK=67ki93CLzGFw@mail.gmail.com>"],
+        "to": ["andris <andris@ekiri.ee>"],
+        "in-reply-to": ["<CAPFU5tRb4fM+4d74kkb5bjGuFr7n3kFF_TNXK=67ki93CLzGFw@mail.gmail.com>"],
+        "message-id": ["<A768E075-1C9F-4483-A04A-943FA920BFC5@gmail.com>"],
+        "x-mailer": ["Apple Mail (2.3696.100.31)"]
+    },
+    "text": {
+        "id": "AAAADQAABlyTkaExkaEykA",
+        "encodedSize": {
+            "plain": 123,
+            "html": 590
+        },
+        "plain": "multi pultiu 3\n\n> On 6. Jul 2022, at 16:34, Andris Reinman <andris@postalsys.com> wrote:\n> \n> See on lihtsalt proov\n\n",
+        "html": "<html><head><meta http-equiv=\"Content-Type\" content=\"text/html; charset=us-ascii\"></head><body style=\"word-wrap: break-word; -webkit-nbsp-mode: space; line-break: after-white-space;\" class=\"\">multi <b class=\"\">pultiu 3</b><br class=\"\"><div><br class=\"\"><blockquote type=\"cite\" class=\"\"><div class=\"\">On 6. Jul 2022, at 16:34, Andris Reinman &lt;<a href=\"mailto:andris@postalsys.com\" class=\"\">andris@postalsys.com</a>&gt; wrote:</div><br class=\"Apple-interchange-newline\"><div class=\"\"><div dir=\"ltr\" class=\"\">See on lihtsalt proov</div>\n</div></blockquote></div><br class=\"\"></body></html>",
+        "hasMore": false
+    }
+}

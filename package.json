@@ -1,0 +1,31 @@
+{
+    "name": "@postalsys/email-ai-tools",
+    "version": "1.0.0",
+    "description": "Email AI tools",
+    "main": "index.js",
+    "scripts": {
+        "test": "echo \"Error: no test specified\" && exit 1"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/postalsys/email-ai-tools.git"
+    },
+    "keywords": [],
+    "author": "Postal Systems OÜ",
+    "license": "MIT",
+    "bugs": {
+        "url": "https://github.com/postalsys/email-ai-tools/issues"
+    },
+    "homepage": "https://github.com/postalsys/email-ai-tools#readme",
+    "devDependencies": {
+        "@postalsys/email-text-tools": "^1.4.1",
+        "eslint-config-nodemailer": "1.2.0",
+        "eslint-config-prettier": "8.8.0",
+        "mailparser": "3.6.4"
+    },
+    "dependencies": {
+        "gpt3-tokenizer": "1.1.5",
+        "libmime": "5.2.1",
+        "undici": "5.22.0"
+    }
+}
