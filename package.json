@@ -1,6 +1,6 @@
 {
     "name": "@postalsys/email-ai-tools",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "description": "Email AI tools",
     "main": "index.js",
     "scripts": {
@@ -18,12 +18,12 @@
     },
     "homepage": "https://github.com/postalsys/email-ai-tools#readme",
     "devDependencies": {
-        "@postalsys/email-text-tools": "^1.4.1",
         "eslint-config-nodemailer": "1.2.0",
         "eslint-config-prettier": "8.8.0",
         "mailparser": "3.6.4"
     },
     "dependencies": {
+        "@postalsys/email-text-tools": "1.4.1",
         "gpt3-tokenizer": "1.1.5",
         "libmime": "5.2.1",
         "undici": "5.22.0"
