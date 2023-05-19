@@ -1,7 +1,7 @@
 'use strict';
 
 const fs = require('fs').promises;
-const { riskAnalysis } = require('..');
+const { generateSummary } = require('..');
 const simpleParser = require('mailparser').simpleParser;
 const libmime = require('libmime');
 const Path = require('path');
@@ -14,12 +14,13 @@ async function analyzeEmail(path) {
 
     const parsed = await simpleParser(eml);
 
-    const result = await riskAnalysis(
+    const result = await generateSummary(
         {
             headers: parsed.headerLines.map(header => libmime.decodeHeader(header.line)),
             attachments: parsed.attachments,
             html: parsed.html,
-            text: parsed.text
+            text: parsed.text,
+            subject: parsed.subject
         },
         process.env.OPENAI_API_KEY,
         {
