@@ -1,9 +1,10 @@
 'use strict';
 
 const fs = require('fs').promises;
-const generateSummary = require('../lib/generate-summary');
+const { generateSummary } = require('../lib/generate-summary');
 const simpleParser = require('mailparser').simpleParser;
 const libmime = require('libmime');
+const util = require('util');
 
 async function main() {
     const eml = await fs.readFile(process.argv[2]);
@@ -19,13 +20,14 @@ async function main() {
         },
         process.env.OPENAI_API_KEY,
         {
-            //gptModel: 'gpt-3.5-turbo'
+            //gptModel: 'gpt-3.5-turbo',
             gptModel: 'gpt-4',
-            maxTokens: 6000
+            maxTokens: 6000,
+            verbose: true
         }
     );
 
-    console.log(summary);
+    console.log(util.inspect(summary, false, 22, true));
 }
 
 main();
