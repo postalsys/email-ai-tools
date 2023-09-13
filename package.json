@@ -1,6 +1,6 @@
 {
     "name": "@postalsys/email-ai-tools",
-    "version": "1.2.0",
+    "version": "1.2.1",
     "description": "Email AI tools",
     "main": "index.js",
     "scripts": {
@@ -23,9 +23,9 @@
         "mailparser": "3.6.5"
     },
     "dependencies": {
-        "@postalsys/email-text-tools": "2.1.0",
+        "@postalsys/email-text-tools": "2.1.1",
         "gpt3-tokenizer": "1.1.5",
         "libmime": "5.2.1",
-        "undici": "5.23.0"
+        "undici": "5.24.0"
     }
 }
