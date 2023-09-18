@@ -1,7 +1,7 @@
 'use strict';
 
 const fs = require('fs').promises;
-const { generateSummary } = require('../lib/generate-summary');
+const { generateEmbeddings } = require('../lib/generate-embeddings');
 const simpleParser = require('mailparser').simpleParser;
 const libmime = require('libmime');
 const util = require('util');
@@ -11,13 +11,12 @@ async function main() {
 
     const parsed = await simpleParser(eml);
 
-    const summary = await generateSummary(
+    const result = await generateEmbeddings(
         {
             headers: parsed.headerLines.map(header => libmime.decodeHeader(header.line)),
             attachments: parsed.attachments,
             html: parsed.html,
-            text: parsed.text,
-            subject: parsed.subject
+            text: parsed.text
         },
         process.env.OPENAI_API_KEY,
         {
@@ -28,7 +27,7 @@ async function main() {
         }
     );
 
-    console.log(util.inspect(summary, false, 22, true));
+    console.log(util.inspect(result, false, 22, true));
 }
 
 main();
