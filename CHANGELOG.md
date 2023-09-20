@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.4.0](https://github.com/postalsys/email-ai-tools/compare/v1.3.4...v1.4.0) (2023-09-20)
+
+
+### Features
+
+* **models:** Support GTP-3 Instruct ([6a15fc4](https://github.com/postalsys/email-ai-tools/commit/6a15fc4fdda175485fc22b2bc5fa68a281ee65f5))
+
 ## [1.3.4](https://github.com/postalsys/email-ai-tools/compare/v1.3.3...v1.3.4) (2023-09-19)
 
 
