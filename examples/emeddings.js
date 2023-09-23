@@ -28,6 +28,11 @@ async function main() {
     );
 
     console.log(util.inspect(result, false, 22, true));
+
+    for (let e of result?.embeddings || []) {
+        console.log('CHUNK');
+        console.log(e.chunk);
+    }
 }
 
 main();
