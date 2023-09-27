@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.5.1](https://github.com/postalsys/email-ai-tools/compare/v1.5.0...v1.5.1) (2023-09-27)
+
+
+### Bug Fixes
+
+* **package:** updated package-lock ([a892178](https://github.com/postalsys/email-ai-tools/commit/a89217801c7d05a281c031a9ac72593e29febc97))
+
 ## [1.5.0](https://github.com/postalsys/email-ai-tools/compare/v1.4.1...v1.5.0) (2023-09-27)
 
 
