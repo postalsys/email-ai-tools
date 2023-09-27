@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.4.1](https://github.com/postalsys/email-ai-tools/compare/v1.4.0...v1.4.1) (2023-09-23)
+
+
+### Bug Fixes
+
+* **embeddings:** remove quoted lines ([fb5dd92](https://github.com/postalsys/email-ai-tools/commit/fb5dd92b834249a0290113df4c42b2f01eb22e84))
+
 ## [1.4.0](https://github.com/postalsys/email-ai-tools/compare/v1.3.4...v1.4.0) (2023-09-20)
 
 
