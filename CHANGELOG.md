@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.5.0](https://github.com/postalsys/email-ai-tools/compare/v1.4.1...v1.5.0) (2023-09-27)
+
+
+### Features
+
+* **embeddings:** Support for embeddings query ([5c40f15](https://github.com/postalsys/email-ai-tools/commit/5c40f1504f969cb39270edf28e06e2ea65681fc1))
+
 ## [1.4.1](https://github.com/postalsys/email-ai-tools/compare/v1.4.0...v1.4.1) (2023-09-23)
 
 
