@@ -30,6 +30,6 @@
         "nodemailer": "6.9.5",
         "punycode": "2.3.0",
         "tlds": "1.242.0",
-        "undici": "5.25.2"
+        "undici": "5.25.3"
     }
 }
