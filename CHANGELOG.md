@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.6.1](https://github.com/postalsys/email-ai-tools/compare/v1.6.0...v1.6.1) (2023-10-02)
+
+
+### Bug Fixes
+
+* **chat:** Include the name and email of the person asking the question in the prompt for context ([79bf33c](https://github.com/postalsys/email-ai-tools/commit/79bf33ca1ccd47e3680e912aebe8bcd243578507))
+
 ## [1.6.0](https://github.com/postalsys/email-ai-tools/compare/v1.5.1...v1.6.0) (2023-10-02)
 
 
