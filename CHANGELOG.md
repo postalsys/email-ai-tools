@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.6.0](https://github.com/postalsys/email-ai-tools/compare/v1.5.1...v1.6.0) (2023-10-02)
+
+
+### Features
+
+* **chat:** Added question sorting method ([6b5ce50](https://github.com/postalsys/email-ai-tools/commit/6b5ce506f7d43e03b1dd9f6ae0142c976a4eb88e))
+
 ## [1.5.1](https://github.com/postalsys/email-ai-tools/compare/v1.5.0...v1.5.1) (2023-09-27)
 
 
