@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.6.2](https://github.com/postalsys/email-ai-tools/compare/v1.6.1...v1.6.2) (2023-10-03)
+
+
+### Bug Fixes
+
+* **chat:** fixed response parsing for markdown responses ([34c4fdd](https://github.com/postalsys/email-ai-tools/commit/34c4fdda3ee7eca3a66d5f469cb4ee7a1f777083))
+
 ## [1.6.1](https://github.com/postalsys/email-ai-tools/compare/v1.6.0...v1.6.1) (2023-10-02)
 
 
