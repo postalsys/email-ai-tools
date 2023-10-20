@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.6.3](https://github.com/postalsys/email-ai-tools/compare/v1.6.2...v1.6.3) (2023-10-20)
+
+
+### Bug Fixes
+
+* **chat:** generate and return chat topic ([47755fb](https://github.com/postalsys/email-ai-tools/commit/47755fb0a8625df3bc43c2dc5b410d419e90bc03))
+
 ## [1.6.2](https://github.com/postalsys/email-ai-tools/compare/v1.6.1...v1.6.2) (2023-10-03)
 
 
