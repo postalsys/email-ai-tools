@@ -4,7 +4,8 @@
     "description": "Email AI tools",
     "main": "index.js",
     "scripts": {
-        "test": "echo \"Error: no test specified\" && exit 1"
+        "test": "echo \"Error: no test specified\" && exit 1",
+        "update": "rm -rf node_modules package-lock.json && ncu -u && npm install"
     },
     "repository": {
         "type": "git",
@@ -23,13 +24,13 @@
         "mailparser": "3.6.5"
     },
     "dependencies": {
-        "@postalsys/email-text-tools": "2.1.1",
+        "@postalsys/email-text-tools": "2.1.2",
         "gpt3-tokenizer": "1.1.5",
         "libmime": "5.2.1",
         "linkify-it": "4.0.1",
-        "nodemailer": "6.9.5",
+        "nodemailer": "6.9.6",
         "punycode": "2.3.0",
-        "tlds": "1.242.0",
-        "undici": "5.25.3"
+        "tlds": "1.243.0",
+        "undici": "5.26.4"
     }
 }
