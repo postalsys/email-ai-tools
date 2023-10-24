@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.7.0](https://github.com/postalsys/email-ai-tools/compare/v1.6.3...v1.7.0) (2023-10-24)
+
+
+### Features
+
+* **openai:** Allow to specify base API url ([04ebd3d](https://github.com/postalsys/email-ai-tools/commit/04ebd3d5adfd88ec7a681bbffed4fb302c982846))
+
+
+### Bug Fixes
+
+* **logging:** Log API url if verbose ([2e2b9d9](https://github.com/postalsys/email-ai-tools/commit/2e2b9d9bc605b3261f420855d5ae2d0ca5878153))
+
 ## [1.6.3](https://github.com/postalsys/email-ai-tools/compare/v1.6.2...v1.6.3) (2023-10-20)
 
 
