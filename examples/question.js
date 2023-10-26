@@ -4,7 +4,7 @@ const { questionQuery } = require('../lib/embeddings-query');
 const util = require('util');
 
 async function main() {
-    const question = 'How much did my last purchase on Amazon cost?';
+    const question = process.argv[2] || 'How much did my last purchase on Amazon cost?';
 
     const info = await questionQuery(question, process.env.OPENAI_API_KEY, {
         //gptModel: 'gpt-3.5-turbo',
