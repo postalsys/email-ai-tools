@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.7.1](https://github.com/postalsys/email-ai-tools/compare/v1.7.0...v1.7.1) (2023-10-26)
+
+
+### Bug Fixes
+
+* **questions:** Tuned sort ordering ([6f6b3f4](https://github.com/postalsys/email-ai-tools/commit/6f6b3f467e70cca1dab82410c07029ca98932d7d))
+
 ## [1.7.0](https://github.com/postalsys/email-ai-tools/compare/v1.6.3...v1.7.0) (2023-10-24)
 
 
