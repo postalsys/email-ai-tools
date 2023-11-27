@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.8.0](https://github.com/postalsys/email-ai-tools/compare/v1.7.2...v1.8.0) (2023-11-27)
+
+
+### Features
+
+* **list-models:** new method to list available models ([7ddb033](https://github.com/postalsys/email-ai-tools/commit/7ddb0334d1cc7b702533aec004b249ef5b1654b7))
+
 ## [1.7.2](https://github.com/postalsys/email-ai-tools/compare/v1.7.1...v1.7.2) (2023-10-31)
 
 
