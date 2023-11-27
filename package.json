@@ -30,7 +30,7 @@
         "linkify-it": "4.0.1",
         "nodemailer": "6.9.7",
         "punycode": "2.3.1",
-        "tlds": "1.244.0",
-        "undici": "5.27.0"
+        "tlds": "1.247.0",
+        "undici": "5.28.1"
     }
 }
