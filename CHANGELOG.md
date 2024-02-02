@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.8.1](https://github.com/postalsys/email-ai-tools/compare/v1.8.0...v1.8.1) (2024-02-02)
+
+
+### Bug Fixes
+
+* **deps:** bumped nodemailer ([375c5fd](https://github.com/postalsys/email-ai-tools/commit/375c5fd25162880b32205bee155cf694a91bad23))
+
 ## [1.8.0](https://github.com/postalsys/email-ai-tools/compare/v1.7.2...v1.8.0) (2023-11-27)
 
 
