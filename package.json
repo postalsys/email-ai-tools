@@ -20,17 +20,17 @@
     "homepage": "https://github.com/postalsys/email-ai-tools#readme",
     "devDependencies": {
         "eslint-config-nodemailer": "1.2.0",
-        "eslint-config-prettier": "9.0.0",
-        "mailparser": "3.6.5"
+        "eslint-config-prettier": "9.1.0",
+        "mailparser": "3.6.7"
     },
     "dependencies": {
         "@postalsys/email-text-tools": "2.1.3",
         "gpt3-tokenizer": "1.1.5",
         "libmime": "5.2.1",
-        "linkify-it": "4.0.1",
-        "nodemailer": "6.9.7",
+        "linkify-it": "5.0.0",
+        "nodemailer": "6.9.9",
         "punycode": "2.3.1",
-        "tlds": "1.247.0",
-        "undici": "5.28.1"
+        "tlds": "1.249.0",
+        "undici": "5.28.2"
     }
 }
