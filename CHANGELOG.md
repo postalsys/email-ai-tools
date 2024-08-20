@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.8.9](https://github.com/postalsys/email-ai-tools/compare/v1.8.8...v1.8.9) (2024-08-20)
+
+
+### Bug Fixes
+
+* **deps:** Updated undici ([64ec2e7](https://github.com/postalsys/email-ai-tools/commit/64ec2e7148be9d83a255a08f9ab50a934eeacf99))
+
 ## [1.8.8](https://github.com/postalsys/email-ai-tools/compare/v1.8.7...v1.8.8) (2024-07-03)
 
 
