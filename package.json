@@ -24,7 +24,7 @@
         "mailparser": "3.7.1"
     },
     "dependencies": {
-        "@postalsys/email-text-tools": "2.1.9",
+        "@postalsys/email-text-tools": "2.1.10",
         "gpt3-tokenizer": "1.1.5",
         "libmime": "5.3.5",
         "linkify-it": "5.0.0",
