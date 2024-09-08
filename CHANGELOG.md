@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.8.11](https://github.com/postalsys/email-ai-tools/compare/v1.8.10...v1.8.11) (2024-09-08)
+
+
+### Bug Fixes
+
+* Replaced punycode with punycode.js ([5c54d20](https://github.com/postalsys/email-ai-tools/commit/5c54d202c700230fac4ae87899d32bcafa56dfca))
+
 ## [1.8.10](https://github.com/postalsys/email-ai-tools/compare/v1.8.9...v1.8.10) (2024-08-22)
 
 
