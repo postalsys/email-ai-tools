@@ -1,6 +1,6 @@
 {
     "name": "@postalsys/email-ai-tools",
-    "version": "1.8.12",
+    "version": "1.8.13",
     "description": "Email AI tools",
     "main": "index.js",
     "scripts": {
