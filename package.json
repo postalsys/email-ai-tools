@@ -24,13 +24,13 @@
         "mailparser": "3.7.2"
     },
     "dependencies": {
-        "@postalsys/email-text-tools": "2.1.14",
+        "@postalsys/email-text-tools": "2.1.15",
         "gpt3-tokenizer": "1.1.5",
         "libmime": "5.3.6",
         "linkify-it": "5.0.0",
-        "nodemailer": "6.10.0",
+        "nodemailer": "7.0.3",
         "punycode.js": "2.3.1",
-        "tlds": "1.255.0",
-        "undici": "7.3.0"
+        "tlds": "1.259.0",
+        "undici": "7.10.0"
     }
 }
