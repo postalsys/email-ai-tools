@@ -21,16 +21,16 @@
     "devDependencies": {
         "eslint-config-nodemailer": "1.2.0",
         "eslint-config-prettier": "9.1.0",
-        "mailparser": "3.7.3"
+        "mailparser": "3.7.4"
     },
     "dependencies": {
-        "@postalsys/email-text-tools": "2.1.16",
+        "@postalsys/email-text-tools": "2.2.0",
         "gpt3-tokenizer": "1.1.5",
         "libmime": "5.3.7",
         "linkify-it": "5.0.0",
-        "nodemailer": "7.0.3",
+        "nodemailer": "7.0.6",
         "punycode.js": "2.3.1",
-        "tlds": "1.259.0",
-        "undici": "7.11.0"
+        "tlds": "1.260.0",
+        "undici": "7.16.0"
     }
 }
