@@ -5,7 +5,9 @@
     "main": "index.js",
     "scripts": {
         "test": "echo \"Error: no test specified\" && exit 1",
-        "update": "rm -rf node_modules package-lock.json && ncu -u && npm install"
+        "update": "rm -rf node_modules package-lock.json && ncu -u && npm install",
+        "format": "prettier --write \"**/*.{js,json,md}\" --ignore-path .prettierignore",
+        "lint": "eslint ."
     },
     "repository": {
         "type": "git",
@@ -19,18 +21,22 @@
     },
     "homepage": "https://github.com/postalsys/email-ai-tools#readme",
     "devDependencies": {
+        "@eslint/eslintrc": "3.3.1",
+        "@eslint/js": "9.38.0",
+        "eslint": "9.38.0",
         "eslint-config-nodemailer": "1.2.0",
-        "eslint-config-prettier": "9.1.0",
-        "mailparser": "3.7.4"
+        "eslint-config-prettier": "10.1.8",
+        "mailparser": "3.7.5",
+        "prettier": "3.6.2"
     },
     "dependencies": {
-        "@postalsys/email-text-tools": "2.2.0",
+        "@postalsys/email-text-tools": "2.3.3",
         "gpt3-tokenizer": "1.1.5",
         "libmime": "5.3.7",
         "linkify-it": "5.0.0",
-        "nodemailer": "7.0.9",
+        "nodemailer": "7.0.10",
         "punycode.js": "2.3.1",
-        "tlds": "1.260.0",
+        "tlds": "1.261.0",
         "undici": "7.16.0"
     }
 }

@@ -1,6 +1,13 @@
 {
     "rules": {
         "indent": 0,
+        "quotes": 0,
+        "linebreak-style": 0,
+        "semi": 0,
+        "comma-dangle": 0,
+        "comma-style": 0,
+        "arrow-body-style": 0,
+        "arrow-parens": 0,
         "no-await-in-loop": 0,
         "require-atomic-updates": 0
     },
