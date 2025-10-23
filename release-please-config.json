@@ -1,0 +1,9 @@
+{
+    "packages": {
+        ".": {
+            "release-type": "node",
+            "package-name": "@postalsys/email-ai-tools",
+            "pull-request-title-pattern": "chore${scope}: release ${version} [skip-ci]"
+        }
+    }
+}
