@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.9.1](https://github.com/postalsys/email-ai-tools/compare/email-ai-tools-v1.9.0...email-ai-tools-v1.9.1) (2025-10-23)
+
+
+### Bug Fixes
+
+* bumped deps ([45be822](https://github.com/postalsys/email-ai-tools/commit/45be822bb45e5f74455f4415aa61b8cf77fa2352))
+
 ## [1.9.0](https://github.com/postalsys/email-ai-tools/compare/email-ai-tools-v1.8.19...email-ai-tools-v1.9.0) (2025-10-23)
 
 
