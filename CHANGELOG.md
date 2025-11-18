@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.10.0](https://github.com/postalsys/email-ai-tools/compare/email-ai-tools-v1.9.2...email-ai-tools-v1.10.0) (2025-11-18)
+
+
+### Features
+
+* upgrade to larger context models and improve prompt engineering ([27564ce](https://github.com/postalsys/email-ai-tools/commit/27564ce9fdebb79fcb2803a2c47a895881835874))
+
 ## [1.9.2](https://github.com/postalsys/email-ai-tools/compare/email-ai-tools-v1.9.1...email-ai-tools-v1.9.2) (2025-10-29)
 
 
