@@ -21,9 +21,8 @@ async function main() {
         },
         process.env.OPENAI_API_KEY,
         {
-            //gptModel: 'gpt-3.5-turbo',
-            gptModel: 'gpt-4',
-            maxTokens: 6000,
+            gptModel: 'gpt-5-mini',
+            maxTokens: 30000,
             verbose: true
         }
     );
