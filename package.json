@@ -22,11 +22,11 @@
     "homepage": "https://github.com/postalsys/email-ai-tools#readme",
     "devDependencies": {
         "@eslint/eslintrc": "3.3.1",
-        "@eslint/js": "9.38.0",
-        "eslint": "9.38.0",
+        "@eslint/js": "9.39.1",
+        "eslint": "9.39.1",
         "eslint-config-nodemailer": "1.2.0",
         "eslint-config-prettier": "10.1.8",
-        "mailparser": "3.7.5",
+        "mailparser": "3.9.0",
         "prettier": "3.6.2"
     },
     "dependencies": {
