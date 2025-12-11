@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.11.1](https://github.com/postalsys/email-ai-tools/compare/v1.11.0...v1.11.1) (2025-12-11)
+
+
+### Bug Fixes
+
+* trigger release ([9f2237c](https://github.com/postalsys/email-ai-tools/commit/9f2237cf4c97a16de929fb731ac81710e675ac68))
+
 ## [1.11.0](https://github.com/postalsys/email-ai-tools/compare/v1.10.0...v1.11.0) (2025-11-18)
 
 
