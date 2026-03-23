@@ -23,7 +23,7 @@
     "devDependencies": {
         "@eslint/eslintrc": "3.3.5",
         "@eslint/js": "10.0.1",
-        "eslint": "10.0.3",
+        "eslint": "10.1.0",
         "eslint-config-nodemailer": "1.2.0",
         "eslint-config-prettier": "10.1.8",
         "mailparser": "3.9.4",
@@ -34,9 +34,9 @@
         "gpt3-tokenizer": "1.1.5",
         "libmime": "5.3.7",
         "linkify-it": "5.0.0",
-        "nodemailer": "8.0.2",
+        "nodemailer": "8.0.3",
         "punycode.js": "2.3.1",
         "tlds": "1.261.0",
-        "undici": "7.24.3"
+        "undici": "7.24.5"
     }
 }
