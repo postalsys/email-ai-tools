@@ -4,7 +4,7 @@
     "description": "Email AI tools",
     "main": "index.js",
     "scripts": {
-        "test": "echo \"Error: no test specified\" && exit 1",
+        "test": "node --test test/*.test.js",
         "update": "rm -rf node_modules package-lock.json && ncu -u && npm install",
         "format": "prettier --write \"**/*.{js,json,md}\" --ignore-path .prettierignore",
         "lint": "eslint ."
