@@ -1,5 +1,18 @@
 # Changelog
 
+## [1.13.0](https://github.com/postalsys/email-ai-tools/compare/v1.12.1...v1.13.0) (2026-03-25)
+
+
+### Features
+
+* add test suite and CI workflow ([2fa43d6](https://github.com/postalsys/email-ai-tools/commit/2fa43d61f29c50a7ae172c41fb7d288f781ccd31))
+
+
+### Bug Fixes
+
+* Bumped deps ([6a121e6](https://github.com/postalsys/email-ai-tools/commit/6a121e6cb948da5f8bf84e8a4f65f69baf888942))
+* require Node 22+ for test CI matrix ([3e689ef](https://github.com/postalsys/email-ai-tools/commit/3e689efe7a50df58d85071bb587a0cbba8ed9bb4))
+
 ## [1.12.1](https://github.com/postalsys/email-ai-tools/compare/v1.12.0...v1.12.1) (2026-03-23)
 
 
