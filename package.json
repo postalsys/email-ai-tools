@@ -32,7 +32,7 @@
     "dependencies": {
         "@postalsys/email-text-tools": "2.4.4",
         "gpt3-tokenizer": "1.1.5",
-        "libmime": "5.3.7",
+        "libmime": "5.3.8",
         "linkify-it": "5.0.0",
         "nodemailer": "8.0.5",
         "punycode.js": "2.3.1",
