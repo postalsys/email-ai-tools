@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.13.4](https://github.com/postalsys/email-ai-tools/compare/v1.13.3...v1.13.4) (2026-04-17)
+
+
+### Bug Fixes
+
+* pin undici to support Node 20 ([90a7d67](https://github.com/postalsys/email-ai-tools/commit/90a7d6771ba3ea257ced9ba319f18812ecee03bf))
+
 ## [1.13.3](https://github.com/postalsys/email-ai-tools/compare/v1.13.2...v1.13.3) (2026-04-16)
 
 
