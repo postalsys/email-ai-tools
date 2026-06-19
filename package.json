@@ -26,7 +26,7 @@
         "eslint": "10.5.0",
         "eslint-config-nodemailer": "1.2.0",
         "eslint-config-prettier": "10.1.8",
-        "mailparser": "3.9.9",
+        "mailparser": "3.9.11",
         "prettier": "3.8.4"
     },
     "dependencies": {
@@ -34,7 +34,7 @@
         "gpt3-tokenizer": "1.1.5",
         "libmime": "5.3.8",
         "linkify-it": "5.0.1",
-        "nodemailer": "9.0.0",
+        "nodemailer": "9.0.1",
         "punycode.js": "2.3.1",
         "tlds": "1.261.0",
         "undici": "7.25.0"
