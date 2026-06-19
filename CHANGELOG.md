@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.13.8](https://github.com/postalsys/email-ai-tools/compare/v1.13.7...v1.13.8) (2026-06-19)
+
+
+### Bug Fixes
+
+* bump undici to 7.28.0 and email-text-tools to 2.4.8 ([0f02a9a](https://github.com/postalsys/email-ai-tools/commit/0f02a9a53656d0544fd0aa7d7a2a193e7ef3e61c))
+
 ## [1.13.7](https://github.com/postalsys/email-ai-tools/compare/v1.13.6...v1.13.7) (2026-06-19)
 
 
