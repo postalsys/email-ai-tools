@@ -26,7 +26,7 @@
         "eslint": "10.6.0",
         "eslint-config-nodemailer": "1.2.0",
         "eslint-config-prettier": "10.1.8",
-        "mailparser": "3.9.13",
+        "mailparser": "3.9.14",
         "prettier": "3.9.4"
     },
     "dependencies": {
