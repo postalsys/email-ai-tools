@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.13.10](https://github.com/postalsys/email-ai-tools/compare/v1.13.9...v1.13.10) (2026-07-05)
+
+
+### Bug Fixes
+
+* update dependencies (email-text-tools 2.4.10) ([c5d51b8](https://github.com/postalsys/email-ai-tools/commit/c5d51b8af3cf07c88639bf1c400c57794c468d5e))
+
 ## [1.13.9](https://github.com/postalsys/email-ai-tools/compare/v1.13.8...v1.13.9) (2026-06-26)
 
 
