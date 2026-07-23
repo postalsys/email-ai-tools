@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.13.14](https://github.com/postalsys/email-ai-tools/compare/v1.13.13...v1.13.14) (2026-07-23)
+
+
+### Bug Fixes
+
+* keep the URL path prefix of custom API base URLs ([6c699da](https://github.com/postalsys/email-ai-tools/commit/6c699da65b5b399877f4a84992f4d0a827987d50))
+
 ## [1.13.13](https://github.com/postalsys/email-ai-tools/compare/v1.13.12...v1.13.13) (2026-07-20)
 
 
