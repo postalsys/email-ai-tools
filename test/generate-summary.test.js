@@ -74,6 +74,15 @@ describe('generateSummary', () => {
         assert.equal(req.body.messages[1].role, 'user');
     });
 
+    it('keeps the path prefix of a custom base URL', async () => {
+        mock.setHandler(() => chatResponse(summaryResult));
+
+        await generateSummary(simpleMessage, 'my-api-key', { baseApiUrl: `${mock.url}/openai/v1` });
+
+        const req = mock.requests[0];
+        assert.equal(req.url, '/openai/v1/chat/completions');
+    });
+
     it('converts HTML to text when HTML is longer', async () => {
         mock.setHandler(() => chatResponse(summaryResult));
 

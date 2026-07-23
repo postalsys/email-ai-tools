@@ -40,6 +40,15 @@ describe('listModels', () => {
         assert.ok(req.headers.authorization.includes('Bearer my-api-key'));
     });
 
+    it('keeps the path prefix of a custom base URL', async () => {
+        mock.setHandler(() => modelsResponse());
+
+        await listModels('my-api-key', { baseApiUrl: `${mock.url}/openai/v1` });
+
+        const req = mock.requests[0];
+        assert.equal(req.url, '/openai/v1/models');
+    });
+
     it('filters out openai-dev models', async () => {
         mock.setHandler(() =>
             modelsResponse([
