@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.13.15](https://github.com/postalsys/email-ai-tools/compare/v1.13.14...v1.13.15) (2026-07-28)
+
+
+### Bug Fixes
+
+* **deps:** update undici to 7.29.0 ([1ae29d8](https://github.com/postalsys/email-ai-tools/commit/1ae29d8e7f04eb01c9cd54dc61d41d92358804af))
+
 ## [1.13.14](https://github.com/postalsys/email-ai-tools/compare/v1.13.13...v1.13.14) (2026-07-23)
 
 
