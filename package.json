@@ -23,11 +23,11 @@
     "devDependencies": {
         "@eslint/eslintrc": "3.3.6",
         "@eslint/js": "10.0.1",
-        "eslint": "10.7.0",
+        "eslint": "10.8.0",
         "eslint-config-nodemailer": "1.2.0",
         "eslint-config-prettier": "10.1.8",
         "mailparser": "3.9.14",
-        "prettier": "3.9.5"
+        "prettier": "3.9.6"
     },
     "dependencies": {
         "@postalsys/email-text-tools": "2.4.11",
@@ -37,6 +37,6 @@
         "nodemailer": "9.0.3",
         "punycode.js": "2.3.1",
         "tlds": "1.261.0",
-        "undici": "7.28.0"
+        "undici": "7.29.0"
     }
 }
