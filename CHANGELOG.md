@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.13.16](https://github.com/postalsys/email-ai-tools/compare/v1.13.15...v1.13.16) (2026-08-07)
+
+
+### Bug Fixes
+
+* **deps:** update dependencies (libmime 5.4.2, nodemailer 9.0.5) ([2d217f5](https://github.com/postalsys/email-ai-tools/commit/2d217f5bbac1f450b772d3eaaf3feb8178746ebe))
+
 ## [1.13.15](https://github.com/postalsys/email-ai-tools/compare/v1.13.14...v1.13.15) (2026-07-28)
 
 
