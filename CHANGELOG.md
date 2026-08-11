@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.13.17](https://github.com/postalsys/email-ai-tools/compare/v1.13.16...v1.13.17) (2026-08-11)
+
+
+### Bug Fixes
+
+* **deps:** update email-text-tools to 2.4.12 (dompurify GHSA-55q2-fjhq-7xh7) ([df80584](https://github.com/postalsys/email-ai-tools/commit/df80584591f41f0c6761786afae7a4eb79d3500a))
+
 ## [1.13.16](https://github.com/postalsys/email-ai-tools/compare/v1.13.15...v1.13.16) (2026-08-07)
 
 
