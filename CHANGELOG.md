@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.13.18](https://github.com/postalsys/email-ai-tools/compare/v1.13.17...v1.13.18) (2026-08-17)
+
+
+### Bug Fixes
+
+* **deps:** update email-text-tools to 2.4.13 (node-html-parser 9) ([ad5d46b](https://github.com/postalsys/email-ai-tools/commit/ad5d46bbfd35ec27543277ecdaca8d842b35ca46))
+
 ## [1.13.17](https://github.com/postalsys/email-ai-tools/compare/v1.13.16...v1.13.17) (2026-08-11)
 
 
