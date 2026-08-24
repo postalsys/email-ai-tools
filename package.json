@@ -23,14 +23,14 @@
     "devDependencies": {
         "@eslint/eslintrc": "3.3.6",
         "@eslint/js": "10.0.1",
-        "eslint": "10.8.1",
+        "eslint": "10.9.0",
         "eslint-config-nodemailer": "1.2.0",
         "eslint-config-prettier": "10.1.8",
-        "mailparser": "3.9.15",
+        "mailparser": "3.9.16",
         "prettier": "3.9.6"
     },
     "dependencies": {
-        "@postalsys/email-text-tools": "2.4.13",
+        "@postalsys/email-text-tools": "2.4.14",
         "gpt3-tokenizer": "1.1.5",
         "libmime": "5.4.2",
         "linkify-it": "5.0.2",
