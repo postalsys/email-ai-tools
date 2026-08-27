@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.13.20](https://github.com/postalsys/email-ai-tools/compare/v1.13.19...v1.13.20) (2026-08-27)
+
+
+### Bug Fixes
+
+* **deps:** update dependencies (nodemailer 9.0.6, mailparser 3.9.17) ([8e5f2ac](https://github.com/postalsys/email-ai-tools/commit/8e5f2ac68c376c7d39436287fe8dfa52078fab95))
+
 ## [1.13.19](https://github.com/postalsys/email-ai-tools/compare/v1.13.18...v1.13.19) (2026-08-24)
 
 
