@@ -34,7 +34,7 @@
         "gpt3-tokenizer": "1.1.5",
         "libmime": "5.4.2",
         "linkify-it": "5.0.2",
-        "nodemailer": "9.0.6",
+        "nodemailer": "9.1.0",
         "punycode.js": "2.3.1",
         "tlds": "1.261.0",
         "undici": "7.29.0"
