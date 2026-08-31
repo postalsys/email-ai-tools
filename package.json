@@ -26,13 +26,13 @@
         "eslint": "10.9.1",
         "eslint-config-nodemailer": "1.2.0",
         "eslint-config-prettier": "10.1.8",
-        "mailparser": "3.9.17",
+        "mailparser": "3.9.18",
         "prettier": "3.9.6"
     },
     "dependencies": {
         "@postalsys/email-text-tools": "2.4.14",
         "gpt3-tokenizer": "1.1.5",
-        "libmime": "5.4.2",
+        "libmime": "5.4.3",
         "linkify-it": "5.0.2",
         "nodemailer": "9.1.0",
         "punycode.js": "2.3.1",
