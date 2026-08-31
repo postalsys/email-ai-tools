@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.13.22](https://github.com/postalsys/email-ai-tools/compare/v1.13.21...v1.13.22) (2026-08-31)
+
+
+### Bug Fixes
+
+* **deps:** update libmime to 5.4.3 for the CP932 extended areas ([c1d2600](https://github.com/postalsys/email-ai-tools/commit/c1d2600c17cd52b41e9c450a39273d4a608784ac))
+
 ## [1.13.21](https://github.com/postalsys/email-ai-tools/compare/v1.13.20...v1.13.21) (2026-08-31)
 
 
