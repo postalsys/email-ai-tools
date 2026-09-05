@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.14.0](https://github.com/postalsys/email-ai-tools/compare/v1.13.24...v1.14.0) (2026-09-05)
+
+
+### Features
+
+* send API requests through a caller-supplied undici dispatcher ([63e710b](https://github.com/postalsys/email-ai-tools/commit/63e710b6898e89134cd0b99862aaf61dd020ae59))
+
 ## [1.13.24](https://github.com/postalsys/email-ai-tools/compare/v1.13.23...v1.13.24) (2026-09-01)
 
 
