@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.14.2](https://github.com/postalsys/email-ai-tools/compare/v1.14.1...v1.14.2) (2026-09-06)
+
+
+### Bug Fixes
+
+* declare the Node 20 floor this package already has ([d6bdad9](https://github.com/postalsys/email-ai-tools/commit/d6bdad946382de45216d82529c6bb103d9b490b9))
+
 ## [1.14.1](https://github.com/postalsys/email-ai-tools/compare/v1.14.0...v1.14.1) (2026-09-06)
 
 
