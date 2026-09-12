@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.14.6](https://github.com/postalsys/email-ai-tools/compare/v1.14.5...v1.14.6) (2026-09-12)
+
+
+### Bug Fixes
+
+* **deps:** update nodemailer to 10.0.9 and mailparser to 3.9.26 ([f9b0ae7](https://github.com/postalsys/email-ai-tools/commit/f9b0ae7462dd5277a87122eaccd5ba96cd3b7f2f))
+
 ## [1.14.5](https://github.com/postalsys/email-ai-tools/compare/v1.14.4...v1.14.5) (2026-09-11)
 
 
