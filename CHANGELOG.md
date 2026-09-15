@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.14.9](https://github.com/postalsys/email-ai-tools/compare/v1.14.8...v1.14.9) (2026-09-15)
+
+
+### Bug Fixes
+
+* **deps:** update mailparser to 3.9.28 ([9c0cf28](https://github.com/postalsys/email-ai-tools/commit/9c0cf288a4f5113b877e221c6ec8ec1742012cfb))
+
 ## [1.14.8](https://github.com/postalsys/email-ai-tools/compare/v1.14.7...v1.14.8) (2026-09-15)
 
 
