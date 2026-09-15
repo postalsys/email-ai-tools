@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.14.8](https://github.com/postalsys/email-ai-tools/compare/v1.14.7...v1.14.8) (2026-09-15)
+
+
+### Bug Fixes
+
+* **deps:** update libmime to 5.4.4 and mailparser to 3.9.27 ([9bf4524](https://github.com/postalsys/email-ai-tools/commit/9bf45248f57aea13a848ac3068fabe5574c9badf))
+
 ## [1.14.7](https://github.com/postalsys/email-ai-tools/compare/v1.14.6...v1.14.7) (2026-09-15)
 
 
