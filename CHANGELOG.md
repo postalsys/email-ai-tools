@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.14.10](https://github.com/postalsys/email-ai-tools/compare/v1.14.9...v1.14.10) (2026-09-27)
+
+
+### Bug Fixes
+
+* **deps:** update nodemailer to 10.0.11 and undici to 7.30.0 ([05a1247](https://github.com/postalsys/email-ai-tools/commit/05a12471a0e726fa49cb596c79feb339093410c5))
+
 ## [1.14.9](https://github.com/postalsys/email-ai-tools/compare/v1.14.8...v1.14.9) (2026-09-15)
 
 
