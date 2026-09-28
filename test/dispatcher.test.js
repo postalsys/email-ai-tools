@@ -29,7 +29,9 @@ const message = {
     text: 'Hello, this is a test email.'
 };
 
-describe('dispatcher option', () => {
+// The request behaviour itself is covered in api-request.test.js; these only check that every
+// entry point hands its dispatcher and signal down to it
+describe('request option pass-through', () => {
     let mock;
     let dispatcher;
 
@@ -85,13 +87,24 @@ describe('dispatcher option', () => {
     ];
 
     for (const entry of cases) {
-        it(`${entry.name} sends its request through the given dispatcher`, async () => {
+        it(`${entry.name} passes the dispatcher and the signal to the request`, { timeout: 5000 }, async () => {
             mock.setHandler(entry.response);
 
             await entry.run({ baseApiUrl: mock.url, dispatcher });
 
             assert.ok(mock.requests.length >= 1, 'the mock server should have been reached');
             assert.equal(dispatcher.dispatched, mock.requests.length);
+
+            // aborted while the request is in flight, and the 429 would otherwise be retried
+            mock.clearRequests();
+            const controller = new AbortController();
+            mock.setHandler(() => {
+                controller.abort(new Error('stopped'));
+                return { status: 429, raw: '', headers: { 'Retry-After': '10' } };
+            });
+
+            await assert.rejects(() => entry.run({ baseApiUrl: mock.url, signal: controller.signal }), { message: 'stopped' });
+            assert.equal(mock.requests.length, 1);
         });
     }
 

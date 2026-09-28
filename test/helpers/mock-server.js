@@ -7,11 +7,13 @@ async function createMockServer() {
     const requests = [];
 
     const server = http.createServer((req, res) => {
-        let body = '';
+        // collect Buffers, decoding chunk by chunk would split multi-byte characters
+        const chunks = [];
         req.on('data', chunk => {
-            body += chunk;
+            chunks.push(chunk);
         });
         req.on('end', () => {
+            const body = Buffer.concat(chunks).toString('utf-8');
             let parsedBody = null;
             try {
                 if (body) {
@@ -29,7 +31,13 @@ async function createMockServer() {
             });
 
             const response = requestHandler(req, parsedBody);
-            res.writeHead(response.status || 200, { 'Content-Type': 'application/json' });
+            if (typeof response.raw === 'string') {
+                // a non-JSON body, for example an HTML error page from a proxy
+                res.writeHead(response.status || 200, Object.assign({ 'Content-Type': 'text/html' }, response.headers));
+                res.end(response.raw);
+                return;
+            }
+            res.writeHead(response.status || 200, Object.assign({ 'Content-Type': 'application/json' }, response.headers));
             res.end(JSON.stringify(response.body || {}));
         });
     });

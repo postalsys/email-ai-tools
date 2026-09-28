@@ -30,13 +30,17 @@ which dependencies this library may use.
 - `lib/embeddings-query.js` - `embeddingsQuery()` / `questionQuery()`; answers
   questions over a set of emails using embeddings and chat completions.
 - `lib/list-models.js` - `listModels()`; lists models exposed by the API endpoint.
+- `lib/api-request.js` - shared HTTP request helper (size cap, JSON parsing, 429
+  retry with Retry-After, error shaping) used by every API call.
+- `lib/token-estimate.js` - character-based token estimate, prompt fitting and chunking.
 
 ## Technology Stack
 
 - **Runtime**: Node.js (CI tests on 22 and 24). No build step - plain CommonJS.
 - **Module system**: CommonJS (`'use strict';`, `require`/`module.exports`).
 - **HTTP**: `undici` (`fetch` + `Agent`) for all outbound API calls.
-- **Tokenizing**: `gpt3-tokenizer` for token-count budgeting.
+- **Token budgeting**: a character-based estimate in `lib/token-estimate.js` (no
+  tokenizer dependency); the model's own context-length error is the backstop.
 - **Email/text helpers**: `@postalsys/email-text-tools`, `libmime`,
   `nodemailer/lib/addressparser`, `linkify-it`, `tlds`, `punycode.js`.
 

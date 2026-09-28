@@ -31,7 +31,6 @@
     },
     "dependencies": {
         "@postalsys/email-text-tools": "2.4.16",
-        "gpt3-tokenizer": "1.1.5",
         "libmime": "5.4.4",
         "linkify-it": "5.0.2",
         "nodemailer": "10.0.11",
