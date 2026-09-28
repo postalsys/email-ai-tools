@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.14.11](https://github.com/postalsys/email-ai-tools/compare/v1.14.10...v1.14.11) (2026-09-28)
+
+
+### Bug Fixes
+
+* estimate tokens without gpt3-tokenizer, cap and batch embeddings input, handle non-JSON API errors ([f08c565](https://github.com/postalsys/email-ai-tools/commit/f08c565355768023c0b0d5645c552704fd1bd1fe))
+
 ## [1.14.10](https://github.com/postalsys/email-ai-tools/compare/v1.14.9...v1.14.10) (2026-09-27)
 
 
