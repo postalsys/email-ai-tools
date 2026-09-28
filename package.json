@@ -26,11 +26,11 @@
         "eslint": "10.11.0",
         "eslint-config-nodemailer": "1.2.0",
         "eslint-config-prettier": "10.1.8",
-        "mailparser": "3.9.29",
+        "mailparser": "3.9.30",
         "prettier": "3.9.9"
     },
     "dependencies": {
-        "@postalsys/email-text-tools": "2.4.17",
+        "@postalsys/email-text-tools": "2.4.18",
         "libmime": "5.4.5",
         "linkify-it": "5.0.2",
         "nodemailer": "10.0.12",
