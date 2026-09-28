@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.14.12](https://github.com/postalsys/email-ai-tools/compare/v1.14.11...v1.14.12) (2026-09-28)
+
+
+### Bug Fixes
+
+* **deps:** pick up email-text-tools 2.4.18 ([436201e](https://github.com/postalsys/email-ai-tools/commit/436201ee41b37dd0e4a1cab85a3a2a6b77c87a13))
+
 ## [1.14.11](https://github.com/postalsys/email-ai-tools/compare/v1.14.10...v1.14.11) (2026-09-28)
 
 
