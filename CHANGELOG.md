@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.14.13](https://github.com/postalsys/email-ai-tools/compare/v1.14.12...v1.14.13) (2026-09-28)
+
+
+### Bug Fixes
+
+* **deps:** update libmime to 5.4.6 ([e5a418f](https://github.com/postalsys/email-ai-tools/commit/e5a418f641da6b36be2724d61b0f41e5ca761ab8))
+
 ## [1.14.12](https://github.com/postalsys/email-ai-tools/compare/v1.14.11...v1.14.12) (2026-09-28)
 
 
