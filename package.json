@@ -30,10 +30,10 @@
         "prettier": "3.9.9"
     },
     "dependencies": {
-        "@postalsys/email-text-tools": "2.4.16",
-        "libmime": "5.4.4",
+        "@postalsys/email-text-tools": "2.4.17",
+        "libmime": "5.4.5",
         "linkify-it": "5.0.2",
-        "nodemailer": "10.0.11",
+        "nodemailer": "10.0.12",
         "punycode.js": "2.3.1",
         "tlds": "1.261.0",
         "undici": "7.30.0"
