@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.14.14](https://github.com/postalsys/email-ai-tools/compare/v1.14.13...v1.14.14) (2026-09-30)
+
+
+### Bug Fixes
+
+* **deps:** update nodemailer to 10.0.13 ([2f5d154](https://github.com/postalsys/email-ai-tools/commit/2f5d154b80ceb7a07233e512845d9a057c08e561))
+
 ## [1.14.13](https://github.com/postalsys/email-ai-tools/compare/v1.14.12...v1.14.13) (2026-09-28)
 
 
