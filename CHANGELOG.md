@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.1.0](https://github.com/postalsys/email-ai-tools/compare/v2.0.0...v2.1.0) (2026-10-01)
+
+
+### Features
+
+* export the header whitelist, the reasoning effort levels and the token budget default ([f52882a](https://github.com/postalsys/email-ai-tools/commit/f52882a04227dc55a00da238b9db6df3ea48ec1c))
+
 ## [2.0.0](https://github.com/postalsys/email-ai-tools/compare/v1.14.14...v2.0.0) (2026-10-01)
 
 
