@@ -1,5 +1,16 @@
 # Changelog
 
+## [2.0.0](https://github.com/postalsys/email-ai-tools/compare/v1.14.14...v2.0.0) (2026-10-01)
+
+
+### ⚠ BREAKING CHANGES
+
+* generateSummary() returns { result, usage } instead of the model output with id, tokens and model merged in; options.userPrompt and DEFAULT_USER_PROMPT are options.instructions and DEFAULT_INSTRUCTIONS; the completions endpoint branch for gpt-3.5-turbo-instruct is gone; riskAnalysis(), generateEmbeddings(), getChunkEmbeddings(), embeddingsQuery() and questionQuery() are removed along with the linkify-it, nodemailer, punycode.js and tlds dependencies.
+
+### Features
+
+* return the model output and the request usage apart, trim the library to the summary ([12ab1be](https://github.com/postalsys/email-ai-tools/commit/12ab1be751554fd5f1fe9d040ab6f654b520ffd6))
+
 ## [1.14.14](https://github.com/postalsys/email-ai-tools/compare/v1.14.13...v1.14.14) (2026-09-30)
 
 
