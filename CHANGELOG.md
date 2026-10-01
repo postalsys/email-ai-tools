@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.2.0](https://github.com/postalsys/email-ai-tools/compare/v2.1.0...v2.2.0) (2026-10-01)
+
+
+### Features
+
+* strip hidden text, check the message in code and verify the authentication results ([a3fd892](https://github.com/postalsys/email-ai-tools/commit/a3fd8927116c860724460391538263ef44e4a4a4))
+
 ## [2.1.0](https://github.com/postalsys/email-ai-tools/compare/v2.0.0...v2.1.0) (2026-10-01)
 
 
