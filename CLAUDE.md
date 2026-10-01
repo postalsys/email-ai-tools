@@ -38,7 +38,8 @@ which dependencies this library may use.
   serves, newest family first (`chatOnly: false` keeps the rest).
 - `lib/api-request.js` - shared HTTP request helper (size cap, JSON parsing, 429
   retry with Retry-After, error shaping) used by every API call.
-- `lib/token-estimate.js` - character-based token estimate, prompt fitting and chunking.
+- `lib/token-estimate.js` - character-based token estimate and prompt fitting against
+  a budget that covers the fixed parts of the prompt too.
 
 ## Technology Stack
 
