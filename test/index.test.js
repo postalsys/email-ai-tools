@@ -13,6 +13,10 @@ describe('index exports', () => {
         assert.equal(typeof lib.listModels, 'function');
     });
 
+    it('exports describeModel as a function', () => {
+        assert.equal(typeof lib.describeModel, 'function');
+    });
+
     it('exports the default model, reasoning effort and token budget', () => {
         assert.equal(typeof lib.DEFAULT_MODEL, 'string');
         assert.ok(lib.DEFAULT_MODEL.length > 0);

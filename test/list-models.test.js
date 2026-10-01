@@ -3,7 +3,7 @@
 const { describe, it, before, after, beforeEach } = require('node:test');
 const assert = require('node:assert/strict');
 const { createMockServer, modelsResponse, errorResponse } = require('./helpers/mock-server');
-const { listModels, nonChatModelPattern } = require('../lib/list-models');
+const { listModels, describeModel, nonChatModelPattern } = require('../lib/list-models');
 
 describe('listModels', () => {
     let mock;
@@ -83,6 +83,21 @@ describe('listModels', () => {
 
         const all = await listModels('test-token', { baseApiUrl: mock.url, chatOnly: false });
         assert.equal(all.models.length, models.length);
+    });
+
+    it('describes the models it knows and marks the ones that suit email triage', async () => {
+        assert.deepEqual(describeModel('gpt-6-luna'), { description: 'Fast and inexpensive, built for high-volume work like this', recommended: true });
+        assert.deepEqual(describeModel('gpt-6-astra'), { description: 'Most capable and most expensive', recommended: false });
+        assert.deepEqual(describeModel('gpt-5.4-nano'), { description: 'Smallest and cheapest of its generation', recommended: true });
+        assert.deepEqual(describeModel('gpt-5-mini-2025-08-07'), { description: 'Small and inexpensive, pinned snapshot', recommended: false });
+        assert.deepEqual(describeModel('gpt-4.1'), { description: 'Previous generation without reasoning', recommended: false });
+        assert.deepEqual(describeModel('llama3.2'), { description: '', recommended: false });
+
+        mock.setHandler(() => modelsResponse([{ id: 'gpt-6-luna', owned_by: 'system' }]));
+        const result = await listModels('test-token', { baseApiUrl: mock.url });
+        // the notes are about OpenAI's names, so another endpoint's list carries none
+        assert.equal(result.models[0].recommended, false);
+        assert.equal(result.models[0].description, '');
     });
 
     it('knows which of the names on the OpenAI endpoint are not chat models', () => {

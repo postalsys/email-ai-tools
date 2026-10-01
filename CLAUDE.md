@@ -34,8 +34,20 @@ which dependencies this library may use.
   (`response_format`, `reasoning_effort`, `temperature`, `top_p`) is dropped,
   retried and remembered per endpoint and model; reasoning models
   (`isReasoningModel()`) get `reasoning_effort: "low"` unless told otherwise.
+- `lib/visible-text.js` - drops hidden elements, scripts, styles and comments
+  from HTML and invisible characters from text, so the model reads what the
+  recipient sees.
+- `lib/signals.js` - checks run in code before the model sees the email
+  (executable attachments, link text naming another host than its target,
+  lookalike domains, display name and reply address mismatches, verified
+  authentication failures, removed hidden content), passed to the model as
+  `signals` and applied afterwards as a floor on `riskAssessment.risk`.
+- `lib/authentication.js` - parses the topmost Authentication-Results header
+  into an `authentication` block marked verified when its authserv-id is one
+  the caller trusts (`trustedAuthservIds`, `acceptUnnamedAuthentication`).
 - `lib/list-models.js` - `listModels()`; lists the chat models an endpoint
-  serves, newest family first (`chatOnly: false` keeps the rest).
+  serves, newest family first (`chatOnly: false` keeps the rest), each with a
+  description and a recommended flag (`describeModel()`).
 - `lib/api-request.js` - shared HTTP request helper (size cap, JSON parsing, 429
   retry with Retry-After, error shaping) used by every API call.
 - `lib/token-estimate.js` - character-based token estimate and prompt fitting against
@@ -48,8 +60,10 @@ which dependencies this library may use.
 - **HTTP**: `undici` (`fetch` + `Agent`) for all outbound API calls.
 - **Token budgeting**: a character-based estimate in `lib/token-estimate.js` (no
   tokenizer dependency); the model's own context-length error is the backstop.
-- **Email/text helpers**: `@postalsys/email-text-tools` (HTML to text) and
-  `libmime` (decoding encoded words in header values).
+- **Email/text helpers**: `@postalsys/email-text-tools` (HTML to text),
+  `libmime` (decoding encoded words in header values), `htmlparser2` with
+  `domutils` and `dom-serializer` (hidden element removal and link extraction,
+  pinned to their last CommonJS majors) and `tldts` (registrable domains).
 
 ## Development Commands
 
