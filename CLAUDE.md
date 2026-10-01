@@ -2,10 +2,12 @@
 
 ## Project Overview
 
-`@postalsys/email-ai-tools` is a Node.js library that adds AI/LLM features on top
-of parsed email data. It talks to OpenAI-compatible HTTP APIs (chat completions,
-text completions, embeddings, model listing) to summarize messages, score them
-for risk, generate vector embeddings, and answer questions over stored email.
+`@postalsys/email-ai-tools` is a Node.js library that analyzes one parsed email
+at a time with an OpenAI-compatible chat model: a summary, the sentiment, whether
+a reply is expected, a fraud risk score, and the events and actions the message
+mentions. It also lists the models an endpoint serves. Version 2.0 dropped the
+risk-only analysis, the embeddings and the question answering over stored email,
+which lost their only consumer when EmailEngine removed its Document Store.
 
 It is published to npm and consumed by other Postal Systems projects - most
 notably EmailEngine (`../emailengine`), where it ships inside a standalone binary
@@ -23,13 +25,17 @@ which dependencies this library may use.
 ### Library Modules
 
 - `lib/generate-summary.js` - `generateSummary()` plus `DEFAULT_SYSTEM_PROMPT` /
-  `DEFAULT_USER_PROMPT`; produces a natural-language summary of a message.
-- `lib/risk-analysis.js` - `riskAnalysis()`; flags suspicious/risky email content.
-- `lib/generate-embeddings.js` - `generateEmbeddings()` / `getChunkEmbeddings()`;
-  splits message text into chunks and returns vector embeddings.
-- `lib/embeddings-query.js` - `embeddingsQuery()` / `questionQuery()`; answers
-  questions over a set of emails using embeddings and chat completions.
-- `lib/list-models.js` - `listModels()`; lists models exposed by the API endpoint.
+  `DEFAULT_INSTRUCTIONS` / `DEFAULT_MODEL`; returns `{ result, usage }`, where
+  `result` is the model's JSON object (documented properties normalized, custom
+  ones passed through) and `usage` the request id, model, token counts and time.
+  The instructions and the input format description go in the system message,
+  the email alone goes in the user message as one JSON object with decoded
+  headers. A parameter the backend refuses with a 400 naming it
+  (`response_format`, `reasoning_effort`, `temperature`, `top_p`) is dropped,
+  retried and remembered per endpoint and model; reasoning models
+  (`isReasoningModel()`) get `reasoning_effort: "low"` unless told otherwise.
+- `lib/list-models.js` - `listModels()`; lists the chat models an endpoint
+  serves, newest family first (`chatOnly: false` keeps the rest).
 - `lib/api-request.js` - shared HTTP request helper (size cap, JSON parsing, 429
   retry with Retry-After, error shaping) used by every API call.
 - `lib/token-estimate.js` - character-based token estimate, prompt fitting and chunking.
@@ -41,8 +47,8 @@ which dependencies this library may use.
 - **HTTP**: `undici` (`fetch` + `Agent`) for all outbound API calls.
 - **Token budgeting**: a character-based estimate in `lib/token-estimate.js` (no
   tokenizer dependency); the model's own context-length error is the backstop.
-- **Email/text helpers**: `@postalsys/email-text-tools`, `libmime`,
-  `nodemailer/lib/addressparser`, `linkify-it`, `tlds`, `punycode.js`.
+- **Email/text helpers**: `@postalsys/email-text-tools` (HTML to text) and
+  `libmime` (decoding encoded words in header values).
 
 ## Development Commands
 

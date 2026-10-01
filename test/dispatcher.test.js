@@ -3,8 +3,8 @@
 const { describe, it, before, after, beforeEach } = require('node:test');
 const assert = require('node:assert/strict');
 const { Agent } = require('undici');
-const { createMockServer, chatResponse, embeddingResponse, modelsResponse } = require('./helpers/mock-server');
-const { generateSummary, generateEmbeddings, getChunkEmbeddings, embeddingsQuery, questionQuery, riskAnalysis, listModels } = require('..');
+const { createMockServer, chatResponse, modelsResponse } = require('./helpers/mock-server');
+const { generateSummary, listModels } = require('..');
 
 // A real undici Agent that counts what was dispatched through it, so a test can tell the request
 // used the dispatcher it was given and not the module's own agent.
@@ -55,31 +55,6 @@ describe('request option pass-through', () => {
             run: opts => generateSummary(message, 'token', opts)
         },
         {
-            name: 'riskAnalysis',
-            response: () => chatResponse({ risk: 1, assessment: 'fine' }),
-            run: opts => riskAnalysis(message, 'token', opts)
-        },
-        {
-            name: 'getChunkEmbeddings',
-            response: () => embeddingResponse(),
-            run: opts => getChunkEmbeddings('chunk', 'token', opts)
-        },
-        {
-            name: 'generateEmbeddings',
-            response: () => embeddingResponse(),
-            run: opts => generateEmbeddings(message, 'token', opts)
-        },
-        {
-            name: 'embeddingsQuery',
-            response: () => chatResponse('Answer.\n\nMessage IDs: id1'),
-            run: opts => embeddingsQuery('token', Object.assign({ question: 'What?', contextChunks: 'id1: hello' }, opts))
-        },
-        {
-            name: 'questionQuery',
-            response: () => chatResponse({ ordering: 'best_match', topic: 'conference' }),
-            run: opts => questionQuery('When is the next conference?', 'token', opts)
-        },
-        {
             name: 'listModels',
             response: () => modelsResponse(),
             run: opts => listModels('token', opts)
@@ -107,25 +82,6 @@ describe('request option pass-through', () => {
             assert.equal(mock.requests.length, 1);
         });
     }
-
-    it('generateEmbeddings forwards the request options to every chunk request', async () => {
-        mock.setHandler(() => embeddingResponse());
-
-        const result = await generateEmbeddings(message, 'token', {
-            baseApiUrl: mock.url,
-            dispatcher,
-            gptModel: 'text-embedding-3-small',
-            user: 'user-1'
-        });
-
-        assert.equal(result.model, 'text-embedding-3-small');
-        assert.ok(mock.requests.length >= 1);
-        for (const req of mock.requests) {
-            assert.equal(req.url, '/v1/embeddings');
-            assert.equal(req.body.model, 'text-embedding-3-small');
-            assert.equal(req.body.user, 'user-1');
-        }
-    });
 
     it('falls back to the built-in agent when no dispatcher is given', async () => {
         mock.setHandler(() => modelsResponse());

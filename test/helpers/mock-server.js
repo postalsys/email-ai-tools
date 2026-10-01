@@ -64,47 +64,23 @@ async function createMockServer() {
 
 function chatResponse(content, opts) {
     opts = opts || {};
+    const total = opts.tokens || 150;
     return {
         status: 200,
         body: {
             id: opts.id || 'chatcmpl-test123',
+            model: opts.model || 'test-model-2026-01-01',
             choices: [
                 {
                     index: 0,
+                    finish_reason: opts.finishReason || 'stop',
                     message: {
                         role: 'assistant',
                         content: typeof content === 'string' ? content : JSON.stringify(content)
                     }
                 }
             ],
-            usage: { total_tokens: opts.tokens || 150 }
-        }
-    };
-}
-
-function instructResponse(content, opts) {
-    opts = opts || {};
-    return {
-        status: 200,
-        body: {
-            id: opts.id || 'cmpl-test123',
-            choices: [
-                {
-                    index: 0,
-                    text: typeof content === 'string' ? content : JSON.stringify(content)
-                }
-            ],
-            usage: { total_tokens: opts.tokens || 100 }
-        }
-    };
-}
-
-function embeddingResponse(embedding) {
-    return {
-        status: 200,
-        body: {
-            data: [{ embedding: embedding || [0.1, 0.2, 0.3] }],
-            usage: { total_tokens: 50 }
+            usage: { prompt_tokens: total - 30, completion_tokens: 30, total_tokens: total }
         }
     };
 }
@@ -114,21 +90,22 @@ function modelsResponse(models) {
         status: 200,
         body: {
             data: models || [
-                { id: 'gpt-4', owned_by: 'openai' },
-                { id: 'gpt-3.5-turbo', owned_by: 'openai' },
-                { id: 'text-embedding-ada-002', owned_by: 'openai' }
+                { id: 'gpt-6-luna', owned_by: 'system' },
+                { id: 'gpt-5-mini', owned_by: 'system' },
+                { id: 'text-embedding-3-small', owned_by: 'system' }
             ]
         }
     };
 }
 
-function errorResponse(status, message, code) {
+function errorResponse(status, message, code, param) {
     return {
         status,
         body: {
             error: {
                 message,
-                code
+                code,
+                param
             }
         }
     };
@@ -137,8 +114,6 @@ function errorResponse(status, message, code) {
 module.exports = {
     createMockServer,
     chatResponse,
-    instructResponse,
-    embeddingResponse,
     modelsResponse,
     errorResponse
 };

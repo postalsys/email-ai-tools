@@ -11,23 +11,24 @@ async function main() {
 
     const parsed = await simpleParser(eml);
 
-    const summary = await generateSummary(
+    const { result, usage } = await generateSummary(
         {
             headers: parsed.headerLines.map(header => libmime.decodeHeader(header.line)),
             attachments: parsed.attachments,
             html: parsed.html,
             text: parsed.text,
-            subject: parsed.subject
+            subject: parsed.subject,
+            from: parsed.from && parsed.from.value && parsed.from.value[0],
+            date: parsed.date
         },
         process.env.OPENAI_API_KEY,
         {
-            gptModel: 'gpt-5-mini',
-            maxTokens: 30000,
+            gptModel: process.env.OPENAI_MODEL,
             verbose: true
         }
     );
 
-    console.log(util.inspect(summary, false, 22, true));
+    console.log(util.inspect({ result, usage }, false, 22, true));
 }
 
 main();

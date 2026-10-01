@@ -1,7 +1,7 @@
 {
     "name": "@postalsys/email-ai-tools",
     "version": "1.14.14",
-    "description": "Email AI tools",
+    "description": "Summarize and risk-score email messages with an OpenAI-compatible chat model",
     "main": "index.js",
     "scripts": {
         "test": "node --test test/*.test.js",
@@ -14,7 +14,7 @@
         "url": "git+https://github.com/postalsys/email-ai-tools.git"
     },
     "keywords": [],
-    "author": "Postal Systems OÜ",
+    "author": "Postal Systems O\u00dc",
     "license": "MIT",
     "bugs": {
         "url": "https://github.com/postalsys/email-ai-tools/issues"
@@ -32,10 +32,6 @@
     "dependencies": {
         "@postalsys/email-text-tools": "2.4.18",
         "libmime": "5.4.6",
-        "linkify-it": "5.0.2",
-        "nodemailer": "10.0.13",
-        "punycode.js": "2.3.1",
-        "tlds": "1.261.0",
         "undici": "7.30.0"
     },
     "engines": {

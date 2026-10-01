@@ -3,7 +3,7 @@
 const { describe, it, before, after, beforeEach } = require('node:test');
 const assert = require('node:assert/strict');
 const { createMockServer, modelsResponse, errorResponse } = require('./helpers/mock-server');
-const { listModels } = require('../lib/list-models');
+const { listModels, nonChatModelPattern } = require('../lib/list-models');
 
 describe('listModels', () => {
     let mock;
@@ -62,6 +62,77 @@ describe('listModels', () => {
 
         assert.equal(result.models.length, 2);
         assert.ok(result.models.every(m => m.owned_by !== 'openai-dev'));
+    });
+
+    it('leaves out the unmistakable non-chat models of a compatible endpoint unless asked', async () => {
+        const models = [
+            { id: 'gpt-6-luna', owned_by: 'system' },
+            { id: 'nomic-embed-text', owned_by: 'library' },
+            { id: 'text-embedding-3-small', owned_by: 'system' },
+            { id: 'whisper-1', owned_by: 'system' },
+            { id: 'Llama-3.1-8B-Instruct', owned_by: 'library' },
+            { id: 'llama3.2', owned_by: 'library' }
+        ];
+        mock.setHandler(() => modelsResponse(models));
+
+        const result = await listModels('test-token', { baseApiUrl: mock.url });
+        assert.deepEqual(
+            result.models.map(m => m.id),
+            ['gpt-6-luna', 'Llama-3.1-8B-Instruct', 'llama3.2']
+        );
+
+        const all = await listModels('test-token', { baseApiUrl: mock.url, chatOnly: false });
+        assert.equal(all.models.length, models.length);
+    });
+
+    it('knows which of the names on the OpenAI endpoint are not chat models', () => {
+        const pattern = nonChatModelPattern();
+        for (const id of [
+            'text-embedding-3-small',
+            'gpt-5-search-api',
+            'gpt-5.3-codex',
+            'gpt-3.5-turbo-instruct',
+            'gpt-realtime-2.1',
+            'gpt-live-1',
+            'gpt-image-2',
+            'gpt-5.6-cyber',
+            'whisper-1',
+            'tts-1',
+            'omni-moderation-latest',
+            'sora-2'
+        ]) {
+            assert.ok(pattern.test(id), id);
+        }
+        for (const id of ['gpt-6-luna', 'gpt-6-astra', 'gpt-5.4-mini', 'gpt-5-nano', 'gpt-4.1', 'o4-mini', 'chat-latest']) {
+            assert.ok(!pattern.test(id), id);
+        }
+        assert.equal(nonChatModelPattern('https://api.openai.com/v1'), pattern);
+        assert.notEqual(nonChatModelPattern('https://resource.openai.azure.com/openai/v1'), pattern);
+    });
+
+    it('sorts the newest family first and names it', async () => {
+        mock.setHandler(() =>
+            modelsResponse([
+                { id: 'gpt-4.1-mini', owned_by: 'system' },
+                { id: 'o4-mini', owned_by: 'system' },
+                { id: 'gpt-5-mini', owned_by: 'system' },
+                { id: 'gpt-5', owned_by: 'system' },
+                { id: 'gpt-5.4-nano', owned_by: 'system' },
+                { id: 'gpt-6-luna', owned_by: 'system' },
+                { id: 'gpt-6-astra', owned_by: 'system' },
+                { id: 'gpt-10', owned_by: 'system' },
+                { id: 'mistral-nemo', owned_by: 'library' }
+            ])
+        );
+
+        const result = await listModels('test-token', { baseApiUrl: mock.url });
+
+        assert.deepEqual(
+            result.models.map(m => m.id),
+            ['gpt-10', 'gpt-6-astra', 'gpt-6-luna', 'gpt-5.4-nano', 'gpt-5', 'gpt-5-mini', 'gpt-4.1-mini', 'o4-mini', 'mistral-nemo']
+        );
+        assert.equal(result.models[1].name, 'GPT-6 Astra');
+        assert.equal(result.models[3].name, 'GPT-5.4 Nano');
     });
 
     it('sorts GPT models first', async () => {
@@ -131,7 +202,7 @@ describe('listModels', () => {
     it('formats TTS prefix to uppercase', async () => {
         mock.setHandler(() => modelsResponse([{ id: 'tts-1', owned_by: 'openai' }]));
 
-        const result = await listModels('test-token', { baseApiUrl: mock.url });
+        const result = await listModels('test-token', { baseApiUrl: mock.url, chatOnly: false });
 
         assert.ok(result.models[0].name.startsWith('TTS-'));
     });
@@ -139,7 +210,7 @@ describe('listModels', () => {
     it('formats Dall-E name correctly', async () => {
         mock.setHandler(() => modelsResponse([{ id: 'dall-e-3', owned_by: 'openai' }]));
 
-        const result = await listModels('test-token', { baseApiUrl: mock.url });
+        const result = await listModels('test-token', { baseApiUrl: mock.url, chatOnly: false });
 
         assert.ok(result.models[0].name.includes('Dall-E'));
     });
@@ -155,7 +226,7 @@ describe('listModels', () => {
     it('formats HD abbreviation to uppercase', async () => {
         mock.setHandler(() => modelsResponse([{ id: 'dall-e-3-hd', owned_by: 'openai' }]));
 
-        const result = await listModels('test-token', { baseApiUrl: mock.url });
+        const result = await listModels('test-token', { baseApiUrl: mock.url, chatOnly: false });
 
         assert.ok(result.models[0].name.includes('HD'));
     });
