@@ -1,6 +1,6 @@
 {
     "name": "@postalsys/email-ai-tools",
-    "version": "1.14.14",
+    "version": "2.0.0",
     "description": "Summarize and risk-score email messages with an OpenAI-compatible chat model",
     "main": "index.js",
     "scripts": {
@@ -14,7 +14,7 @@
         "url": "git+https://github.com/postalsys/email-ai-tools.git"
     },
     "keywords": [],
-    "author": "Postal Systems O\u00dc",
+    "author": "Postal Systems OÜ",
     "license": "MIT",
     "bugs": {
         "url": "https://github.com/postalsys/email-ai-tools/issues"
