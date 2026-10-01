@@ -1,6 +1,15 @@
 'use strict';
 
-const { generateSummary, DEFAULT_MODEL, DEFAULT_REASONING_EFFORT, DEFAULT_SYSTEM_PROMPT, DEFAULT_INSTRUCTIONS } = require('./lib/generate-summary');
+const {
+    generateSummary,
+    DEFAULT_MODEL,
+    DEFAULT_REASONING_EFFORT,
+    DEFAULT_MAX_TOKENS,
+    DEFAULT_SYSTEM_PROMPT,
+    DEFAULT_INSTRUCTIONS,
+    REASONING_EFFORTS,
+    ALLOWED_HEADERS
+} = require('./lib/generate-summary');
 const { listModels } = require('./lib/list-models');
 
 module.exports = {
@@ -8,6 +17,9 @@ module.exports = {
     listModels,
     DEFAULT_MODEL,
     DEFAULT_REASONING_EFFORT,
+    DEFAULT_MAX_TOKENS,
     DEFAULT_SYSTEM_PROMPT,
-    DEFAULT_INSTRUCTIONS
+    DEFAULT_INSTRUCTIONS,
+    REASONING_EFFORTS,
+    ALLOWED_HEADERS
 };

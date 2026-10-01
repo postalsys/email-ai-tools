@@ -13,10 +13,18 @@ describe('index exports', () => {
         assert.equal(typeof lib.listModels, 'function');
     });
 
-    it('exports the default model and reasoning effort', () => {
+    it('exports the default model, reasoning effort and token budget', () => {
         assert.equal(typeof lib.DEFAULT_MODEL, 'string');
         assert.ok(lib.DEFAULT_MODEL.length > 0);
         assert.equal(lib.DEFAULT_REASONING_EFFORT, 'low');
+        assert.ok(lib.REASONING_EFFORTS.includes(lib.DEFAULT_REASONING_EFFORT));
+        assert.equal(lib.DEFAULT_MAX_TOKENS, 30000);
+    });
+
+    it('exports the header whitelist as a frozen list', () => {
+        assert.ok(Object.isFrozen(lib.ALLOWED_HEADERS));
+        assert.ok(lib.ALLOWED_HEADERS.includes('authentication-results'));
+        assert.ok(lib.ALLOWED_HEADERS.includes('subject'));
     });
 
     it('exports DEFAULT_SYSTEM_PROMPT as a non-empty string', () => {

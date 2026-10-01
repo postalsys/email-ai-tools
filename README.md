@@ -107,7 +107,9 @@ Models that are not chat models are left out unless `chatOnly: false` is set. On
 
 ## Other exports
 
-`DEFAULT_MODEL`, `DEFAULT_REASONING_EFFORT`, `DEFAULT_SYSTEM_PROMPT` and `DEFAULT_INSTRUCTIONS`, for a UI that lets the operator edit the instructions or pick the model.
+- `DEFAULT_MODEL`, `DEFAULT_REASONING_EFFORT`, `DEFAULT_MAX_TOKENS`, `DEFAULT_SYSTEM_PROMPT` and `DEFAULT_INSTRUCTIONS`, for a UI that lets the operator edit the instructions, pick the model or set the budget
+- `REASONING_EFFORTS`, the effort levels a UI can offer (`none`, `minimal`, `low`, `medium`, `high`, `xhigh`, `max`), of which each model family supports a subset
+- `ALLOWED_HEADERS`, the header whitelist, for a caller that decides which headers to fetch for the summary
 
 ## Upgrading from 1.x
 
