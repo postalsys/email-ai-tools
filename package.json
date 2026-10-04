@@ -23,10 +23,10 @@
     "devDependencies": {
         "@eslint/eslintrc": "3.3.7",
         "@eslint/js": "10.0.1",
-        "eslint": "10.11.0",
+        "eslint": "10.12.0",
         "eslint-config-nodemailer": "1.2.0",
         "eslint-config-prettier": "10.1.8",
-        "mailparser": "3.9.32",
+        "mailparser": "3.9.35",
         "prettier": "3.9.9"
     },
     "dependencies": {
@@ -34,7 +34,7 @@
         "dom-serializer": "2.0.0",
         "domutils": "3.2.2",
         "htmlparser2": "10.1.0",
-        "libmime": "5.4.6",
+        "libmime": "5.4.7",
         "tldts": "7.4.16",
         "undici": "7.30.0"
     },
