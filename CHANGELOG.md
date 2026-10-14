@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.2.2](https://github.com/postalsys/email-ai-tools/compare/v2.2.1...v2.2.2) (2026-10-14)
+
+
+### Bug Fixes
+
+* **deps:** update libmime to 5.4.8, email-text-tools to 2.4.19 and tldts to 7.4.18 ([7d664e6](https://github.com/postalsys/email-ai-tools/commit/7d664e65cf7c2e0f6091a1f257557d5bd141f0f9))
+
 ## [2.2.1](https://github.com/postalsys/email-ai-tools/compare/v2.2.0...v2.2.1) (2026-10-04)
 
 
