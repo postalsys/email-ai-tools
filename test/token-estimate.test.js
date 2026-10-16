@@ -3,7 +3,7 @@
 const { describe, it, before, after, beforeEach } = require('node:test');
 const assert = require('node:assert/strict');
 const { createMockServer, chatResponse } = require('./helpers/mock-server');
-const { estimateTokens, fitLength, fitPrompt } = require('../lib/token-estimate');
+const { estimateTokens, fitLength, fitPrompt, truncate } = require('../lib/token-estimate');
 const { generateSummary } = require('..');
 
 // 64 KB of CJK text with no whitespace or punctuation, the input that made the old tokenizer
@@ -45,6 +45,14 @@ describe('token estimate', () => {
             const len = fitLength(text, tokens);
             assert.equal(len % 2, 0);
         }
+    });
+
+    it('truncate cuts to the length without splitting a surrogate pair, and takes any input', () => {
+        assert.equal(truncate(`${'a'.repeat(9)}\u{1F600}b`, 10), 'a'.repeat(9));
+        assert.equal(truncate(`${'a'.repeat(9)}\u{1F600}b`, 11), `${'a'.repeat(9)}\u{1F600}`);
+        assert.equal(truncate('short', 10), 'short');
+        assert.equal(truncate(undefined, 10), '');
+        assert.equal(truncate(12345, 3), '123');
     });
 
     it('fits a 64 KB CJK body in well under 100 ms', () => {
@@ -142,10 +150,15 @@ describe('prompt fitting', () => {
         assert.equal(usage.text, 'Short message');
     });
 
-    it('generateSummary throws PROMPT_TOO_LONG when the prompt alone exceeds the limit', async () => {
-        await assert.rejects(() => generateSummary({ headers: [], text: 'hello' }, 'token', { baseApiUrl: mock.url, maxTokens: 50 }), {
-            code: 'PROMPT_TOO_LONG'
-        });
+    it('generateSummary throws PROMPT_TOO_LONG when the prompt alone exceeds the limit, with what the checks found', async () => {
+        await assert.rejects(
+            () => generateSummary({ headers: [], attachments: [{ filename: 'a.exe' }], text: 'hello' }, 'token', { baseApiUrl: mock.url, maxTokens: 50 }),
+            err => {
+                assert.equal(err.code, 'PROMPT_TOO_LONG');
+                assert.equal(err.signals[0].code, 'executableAttachment');
+                return true;
+            }
+        );
         assert.equal(mock.requests.length, 0);
     });
 });

@@ -12,7 +12,7 @@ async function createMockServer() {
         req.on('data', chunk => {
             chunks.push(chunk);
         });
-        req.on('end', () => {
+        req.on('end', async () => {
             const body = Buffer.concat(chunks).toString('utf-8');
             let parsedBody = null;
             try {
@@ -30,7 +30,8 @@ async function createMockServer() {
                 body: parsedBody
             });
 
-            const response = requestHandler(req, parsedBody);
+            // a handler may answer later, to stand in for a slow backend
+            const response = await requestHandler(req, parsedBody);
             if (typeof response.raw === 'string') {
                 // a non-JSON body, for example an HTML error page from a proxy
                 res.writeHead(response.status || 200, Object.assign({ 'Content-Type': 'text/html' }, response.headers));

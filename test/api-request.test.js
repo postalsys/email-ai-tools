@@ -3,7 +3,7 @@
 const { describe, it, before, after, beforeEach } = require('node:test');
 const assert = require('node:assert/strict');
 const { createMockServer, modelsResponse } = require('./helpers/mock-server');
-const { apiRequest, MAX_RESPONSE_SIZE } = require('../lib/api-request');
+const { apiRequest, MAX_RESPONSE_SIZE, DEFAULT_TIMEOUT } = require('../lib/api-request');
 
 const HTML_502 = '<html><head><title>502 Bad Gateway</title></head><body><center><h1>502 Bad Gateway</h1></center></body></html>';
 
@@ -148,6 +148,13 @@ describe('apiRequest', () => {
                 return true;
             }
         );
+    });
+
+    it('gives up on a backend that never answers when the caller set no deadline', TIMEOUT, async () => {
+        mock.setHandler(() => new Promise(resolve => setTimeout(() => resolve(modelsResponse()), 2000).unref()));
+
+        await assert.rejects(() => apiRequest(url, { apiToken: 'token', timeout: 100 }), { name: 'TimeoutError' });
+        assert.ok(DEFAULT_TIMEOUT > 0 && DEFAULT_TIMEOUT <= 10 * 60 * 1000, 'the default is a few minutes');
     });
 
     it('stops waiting for a 429 retry when the signal is aborted', TIMEOUT, async () => {

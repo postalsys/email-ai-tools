@@ -3,8 +3,15 @@
 const { describe, it } = require('node:test');
 const assert = require('node:assert/strict');
 const { collectSignals, modelSignals, applySignals, isLookalikeHost, splitAddress } = require('../lib/signals');
+const { MAX_LINK_TEXT_LENGTH } = require('../lib/visible-text');
 
 const codes = signals => signals.map(signal => signal.code);
+
+function timeIt(fn) {
+    const start = process.hrtime.bigint();
+    fn();
+    return Number(process.hrtime.bigint() - start) / 1e6;
+}
 
 describe('collectSignals', () => {
     it('finds nothing in an ordinary message', () => {
@@ -112,6 +119,32 @@ describe('collectSignals', () => {
         );
     });
 
+    it('reads a host out of link text in linear time, whatever the text is made of', { timeout: 5000 }, () => {
+        // Each shape used to make the host search backtrack from every bracket to the end of
+        // the text: 80 KB of the first took 1.8 s, and the time grew with the square of the size
+        const shapes = [size => '(a'.repeat(size / 2), size => '(a@'.repeat(size / 3), size => '('.repeat(size), size => '"a'.repeat(size / 2)];
+        for (const shape of shapes) {
+            const text = shape(1024 * 1024);
+            const ms = timeIt(() => collectSignals({ links: [{ href: 'https://evil.example/', text }] }));
+            assert.ok(ms < 200, `took ${ms} ms`);
+        }
+    });
+
+    it('reads the host off the start of the link text, which is cut to what a reader takes in', () => {
+        const padding = 'x'.repeat(MAX_LINK_TEXT_LENGTH);
+        const signals = collectSignals({
+            links: [
+                { href: 'https://evil.example/', text: `paypal.com ${padding}` },
+                { href: 'https://evil2.example/', text: `${padding} paypal.com` }
+            ]
+        });
+
+        assert.deepEqual(
+            signals.map(signal => signal.detail),
+            ['link text says "paypal.com", the target is "evil.example"']
+        );
+    });
+
     it('flags a lookalike domain written with mixed scripts, in unicode, punycode or percent encoding', () => {
         assert.equal(isLookalikeHost('p\u0430ypal.com'), true);
         assert.equal(isLookalikeHost('xn--pypal-4ve.com'), true);
@@ -152,6 +185,18 @@ describe('collectSignals', () => {
         assert.deepEqual(modelSignals([{ code: 'executableAttachment', detail: '"a.exe"', floor: 4 }]), [{ code: 'executableAttachment', detail: '"a.exe"' }]);
     });
 
+    it('lists at most twenty signals to the model, however many a message carries', () => {
+        const attachments = [];
+        for (let i = 0; i < 100; i++) {
+            attachments.push({ filename: `file${i}.exe` });
+        }
+        const signals = collectSignals({ attachments });
+
+        assert.equal(signals.length, 100, 'every attachment is checked');
+        assert.equal(modelSignals(signals).length, 20);
+        assert.equal(modelSignals(signals)[0].detail, '"file0.exe"');
+    });
+
     it('splits "Name <address>" and a bare address', () => {
         assert.deepEqual(splitAddress('"Jane Doe" <jane@example.com>'), { name: 'Jane Doe', address: 'jane@example.com' });
         assert.deepEqual(splitAddress('jane@example.com'), { name: '', address: 'jane@example.com' });
@@ -186,9 +231,34 @@ describe('applySignals', () => {
         });
     });
 
-    it('leaves a result alone when nothing scored', () => {
+    it('lists nothing when nothing scored, and leaves a result without an assessment alone', () => {
         const result = applySignals({ summary: 'x', riskAssessment: { risk: 1 } }, [{ code: 'hiddenContent', detail: '1', floor: 0 }]);
+        assert.deepEqual(result, { summary: 'x', riskAssessment: { risk: 1, signals: [] } });
 
-        assert.deepEqual(result, { summary: 'x', riskAssessment: { risk: 1 } });
+        assert.deepEqual(applySignals({ summary: 'x' }, []), { summary: 'x' });
+    });
+
+    // The list is documented as what the code found. A model talked into writing one by text in
+    // the message would otherwise hand a consumer facts no check established, or an empty list
+    // that reads as "nothing found" on a message the checks never got to speak about
+    it('replaces whatever signals the model listed with what the checks found', () => {
+        const forged = () => ({ riskAssessment: { risk: 1, signals: ['executableAttachment', 'authenticationFailed'] } });
+
+        assert.deepEqual(applySignals(forged(), []).riskAssessment.signals, []);
+        assert.deepEqual(applySignals(forged(), [{ code: 'hiddenContent', detail: '1', floor: 0 }]).riskAssessment.signals, []);
+        assert.deepEqual(applySignals(forged(), [{ code: 'replyToMismatch', detail: 'd', floor: 2 }]).riskAssessment.signals, ['replyToMismatch']);
+    });
+
+    it('lists at most twenty signals in the result and in the assessment', () => {
+        const signals = [];
+        for (let i = 0; i < 100; i++) {
+            signals.push({ code: 'executableAttachment', detail: `"file${i}.exe"`, floor: 4 });
+        }
+        const result = applySignals({ riskAssessment: { risk: 1 } }, signals);
+
+        assert.equal(result.riskAssessment.risk, 4);
+        assert.equal(result.riskAssessment.signals.length, 20);
+        assert.ok(result.riskAssessment.assessment.includes('"file19.exe"'));
+        assert.ok(!result.riskAssessment.assessment.includes('"file20.exe"'));
     });
 });

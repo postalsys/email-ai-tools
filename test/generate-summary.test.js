@@ -44,6 +44,9 @@ describe('generateSummary', () => {
         riskAssessment: { risk: 1, assessment: 'Low risk message.' }
     };
 
+    // the same, with the signals list the code always writes
+    const expectedResult = Object.assign({}, summaryResult, { riskAssessment: Object.assign({}, summaryResult.riskAssessment, { signals: [] }) });
+
     const userObject = req => JSON.parse(req.body.messages[1].content);
 
     it('returns the model output as the result and the request usage beside it', async () => {
@@ -51,7 +54,7 @@ describe('generateSummary', () => {
 
         const { result, usage } = await generateSummary(simpleMessage, 'test-token', { baseApiUrl: mock.url });
 
-        assert.deepEqual(result, summaryResult);
+        assert.deepEqual(result, expectedResult);
         assert.equal(usage.id, 'chatcmpl-abc');
         assert.equal(usage.model, DEFAULT_MODEL);
         assert.equal(usage.servedModel, 'gpt-6-luna-2026-09-22');
@@ -149,6 +152,74 @@ describe('generateSummary', () => {
         await generateSummary(simpleMessage, 'my-api-key', { baseApiUrl: `${mock.url}/openai/v1` });
 
         assert.equal(mock.requests[0].url, '/openai/v1/chat/completions');
+    });
+
+    it('drops credentials written into the base URL rather than failing with them in the message', async () => {
+        mock.setHandler(() => chatResponse(summaryResult));
+
+        const { result } = await generateSummary(simpleMessage, 'my-api-key', { baseApiUrl: mock.url.replace('://', '://user:secret@') });
+
+        assert.deepEqual(result, expectedResult);
+        assert.equal(mock.requests[0].headers.authorization, 'Bearer my-api-key');
+    });
+
+    it('cuts header values and the attachment list so that no header can push the prompt over the budget', async () => {
+        mock.setHandler(() => chatResponse(summaryResult));
+
+        const cjk = size => '漢字仮名中文日本語文字'.repeat(Math.ceil(size / 11)).substring(0, size);
+        const references = [];
+        for (let i = 0; i < 2000; i++) {
+            references.push(`<message-${i}@example.com>`);
+        }
+        const attachments = [];
+        for (let i = 0; i < 500; i++) {
+            attachments.push({ filename: `${i}-${cjk(300)}.exe`, contentType: cjk(300) });
+        }
+
+        // A subject this long on its own used to be estimated over the default budget, and the
+        // message then went without any assessment at all
+        const { result, signals } = await generateSummary(
+            {
+                headers: [
+                    { key: 'from', value: 'a@example.com' },
+                    { key: 'subject', value: cjk(30000) },
+                    { key: 'references', value: references },
+                    { key: 'to', value: references.map(id => `${id.slice(1, -1)}`) }
+                ],
+                attachments,
+                text: 'Hi'
+            },
+            'test-token',
+            { baseApiUrl: mock.url }
+        );
+
+        const input = userObject(mock.requests[0]);
+        assert.equal(input.subject.length, 1024);
+        assert.ok(input.headers.references.length <= 1024);
+        assert.ok(input.headers.to.length <= 1024);
+        assert.ok(input.headers.to.startsWith('message-0@example.com, message-1@example.com'));
+        assert.equal(input.attachments.length, 20);
+        assert.equal(input.attachments[0].filename.length, 255);
+        assert.equal(input.attachments[0].contentType.length, 255);
+        // every attachment is still checked, the model is told about the first few
+        assert.equal(signals.filter(signal => signal.code === 'executableAttachment').length, 500);
+        assert.equal(input.signals.length, 20);
+        assert.equal(result.riskAssessment.risk, 4);
+    });
+
+    it('cuts the subject, sender and date the caller supplies decoded', async () => {
+        mock.setHandler(() => chatResponse(summaryResult));
+
+        await generateSummary(
+            { subject: 'x'.repeat(5000), from: { name: 'n'.repeat(2000), address: `${'a'.repeat(2000)}@example.com` }, date: 'd'.repeat(5000), text: 'Hi' },
+            'test-token',
+            { baseApiUrl: mock.url }
+        );
+
+        const input = userObject(mock.requests[0]);
+        assert.equal(input.subject.length, 1024);
+        assert.equal(input.from.length, 1024);
+        assert.equal(input.date.length, 1024);
     });
 
     it('converts HTML to text when HTML is longer', async () => {
@@ -369,11 +440,49 @@ describe('generateSummary', () => {
             sentiment: 'positive',
             summary: 'Trimmed',
             shouldReply: true,
-            riskAssessment: { risk: 5 },
+            riskAssessment: { risk: 5, signals: [] },
             events: [{ description: 'single event', startTime: '2026-10-02' }],
             language: 'et',
             emailType: 'inquiry'
         });
+    });
+
+    it('cuts the free text the model wrote and keeps only flat values in events and actions', async () => {
+        const events = [];
+        for (let i = 0; i < 100; i++) {
+            events.push({ description: `event ${i}`, startTime: '2026-10-02' });
+        }
+        mock.setHandler(() =>
+            chatResponse({
+                summary: 'x'.repeat(5000),
+                riskAssessment: { risk: 2, assessment: 'y'.repeat(5000) },
+                events,
+                actions: [
+                    { description: ` ${'z'.repeat(5000)} `, dueDate: '2026-10-03', priority: 1, done: false, nested: { a: 1 }, list: [1] },
+                    { nested: {} }
+                ]
+            })
+        );
+
+        const { result } = await generateSummary(simpleMessage, 'test-token', { baseApiUrl: mock.url });
+
+        assert.equal(result.summary.length, 1000);
+        assert.equal(result.riskAssessment.assessment.length, 1000);
+        assert.equal(result.events.length, 50);
+        assert.deepEqual(result.actions, [{ description: 'z'.repeat(1000), dueDate: '2026-10-03', priority: 1, done: false }]);
+    });
+
+    // The list is documented as what the code found, so a model talked into writing one by text
+    // in the message must not get to hand a consumer facts no check established
+    it('replaces a signals list the model wrote with what the checks found', async () => {
+        mock.setHandler(() => chatResponse({ summary: 'x', riskAssessment: { risk: 1, signals: ['executableAttachment', 'authenticationFailed'] } }));
+
+        const benign = await generateSummary(simpleMessage, 'test-token', { baseApiUrl: mock.url });
+        assert.deepEqual(benign.result.riskAssessment, { risk: 1, signals: [] });
+
+        const flagged = await generateSummary(Object.assign({ attachments: [{ filename: 'a.html' }] }, simpleMessage), 'test-token', { baseApiUrl: mock.url });
+        assert.deepEqual(flagged.result.riskAssessment.signals, ['scriptableAttachment']);
+        assert.equal(flagged.result.riskAssessment.risk, 3);
     });
 
     it('drops documented properties that cannot be made to fit', async () => {
@@ -398,7 +507,7 @@ describe('generateSummary', () => {
 
         const { result } = await generateSummary(simpleMessage, 'test-token', { baseApiUrl: mock.url });
 
-        assert.deepEqual(result.riskAssessment, { risk: 3 });
+        assert.deepEqual(result.riskAssessment, { risk: 3, signals: [] });
     });
 
     it('extracts the JSON object from a response with surrounding text', async () => {
@@ -548,7 +657,7 @@ describe('generateSummary input checks', () => {
         assert.equal(input.text, 'Hello\npaypal');
         // what was removed is reported to the caller, not argued about with the model
         assert.ok(!('signals' in input));
-        assert.deepEqual(result.riskAssessment, { risk: 1 });
+        assert.deepEqual(result.riskAssessment, { risk: 1, signals: [] });
         assert.deepEqual(
             signals.map(signal => signal.code),
             ['hiddenContent', 'invisibleCharacters']

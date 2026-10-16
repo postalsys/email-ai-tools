@@ -44,4 +44,9 @@ describe('getApiUrl', () => {
         assert.equal(getApiUrl('https://api.example.com'), 'https://api.example.com/');
         assert.equal(getApiUrl('https://api.example.com/v1'), 'https://api.example.com/v1/');
     });
+
+    it('drops credentials written into the base URL, which fetch would echo in an error', () => {
+        assert.equal(getApiUrl('https://user:secret@proxy.example.com/v1', '/v1/models'), 'https://proxy.example.com/v1/models');
+        assert.equal(getApiUrl('https://user@proxy.example.com', '/v1/models'), 'https://proxy.example.com/v1/models');
+    });
 });

@@ -2,8 +2,14 @@
 
 const { describe, it } = require('node:test');
 const assert = require('node:assert/strict');
-const { visibleHtml, visibleText } = require('../lib/visible-text');
+const { visibleHtml, visibleText, MAX_HTML_LENGTH, MAX_LINK_TEXT_LENGTH } = require('../lib/visible-text');
 const { htmlToText } = require('@postalsys/email-text-tools');
+
+function timeIt(fn) {
+    const start = process.hrtime.bigint();
+    fn();
+    return Number(process.hrtime.bigint() - start) / 1e6;
+}
 
 describe('visibleHtml', () => {
     it('drops what a mail client does not show, and counts the styled-away elements that carried text', () => {
@@ -93,6 +99,31 @@ describe('visibleHtml', () => {
             assert.equal(result.invisibleCharacters, 0);
             assert.equal(result.html(), '');
         }
+    });
+
+    it('strips conditional comment markers in linear time when they never close', { timeout: 5000 }, () => {
+        // An opening marker with no "]>" after it used to be scanned to the end of the document,
+        // once per marker: 64 KB of them took 180 ms and a megabyte would have taken most of a
+        // minute, in the main process of the application
+        const html = '<!--[if '.repeat(MAX_HTML_LENGTH / 8);
+        const ms = timeIt(() => visibleHtml(html));
+        assert.ok(ms < 1000, `took ${ms} ms`);
+
+        const far = visibleHtml(`<!--[if ${'x'.repeat(MAX_HTML_LENGTH - 16)}]><p>never shown</p>`);
+        assert.equal(far.html(), '');
+    });
+
+    it('reads no more than a megabyte of HTML', () => {
+        const result = visibleHtml(`<p>${'a'.repeat(MAX_HTML_LENGTH)}</p><a href="https://evil.example/">paypal.com</a>`);
+
+        assert.deepEqual(result.links, []);
+        assert.equal(htmlToText(result.html()).length, MAX_HTML_LENGTH - 3);
+    });
+
+    it('cuts the text of a link to what a reader takes in', () => {
+        const { links } = visibleHtml(`<a href="https://a.example/">${'a'.repeat(MAX_LINK_TEXT_LENGTH + 100)}</a>`);
+
+        assert.equal(links[0].text.length, MAX_LINK_TEXT_LENGTH);
     });
 });
 
