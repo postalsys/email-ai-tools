@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.2.4](https://github.com/postalsys/email-ai-tools/compare/v2.2.3...v2.2.4) (2026-10-16)
+
+
+### Bug Fixes
+
+* bump libmime, mailparser, email-text-tools and undici ([b9ff17a](https://github.com/postalsys/email-ai-tools/commit/b9ff17a1b3edf56ee901c87d8085b9a1a62e935d))
+
 ## [2.2.3](https://github.com/postalsys/email-ai-tools/compare/v2.2.2...v2.2.3) (2026-10-16)
 
 
