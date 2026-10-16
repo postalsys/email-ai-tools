@@ -26,17 +26,17 @@
         "eslint": "10.12.0",
         "eslint-config-nodemailer": "1.2.0",
         "eslint-config-prettier": "10.1.8",
-        "mailparser": "3.9.38",
+        "mailparser": "3.9.40",
         "prettier": "3.9.10"
     },
     "dependencies": {
-        "@postalsys/email-text-tools": "2.4.19",
+        "@postalsys/email-text-tools": "2.4.20",
         "dom-serializer": "2.0.0",
         "domutils": "3.2.2",
         "htmlparser2": "10.1.0",
-        "libmime": "5.4.8",
+        "libmime": "5.4.9",
         "tldts": "7.4.18",
-        "undici": "7.30.0"
+        "undici": "7.30.1"
     },
     "engines": {
         "node": ">=20.0.0"
