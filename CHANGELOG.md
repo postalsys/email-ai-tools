@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.2.3](https://github.com/postalsys/email-ai-tools/compare/v2.2.2...v2.2.3) (2026-10-16)
+
+
+### Bug Fixes
+
+* bound the work a message can make the summariser do, and never pass model-written signals through as code-derived ([d4a1512](https://github.com/postalsys/email-ai-tools/commit/d4a1512d7882746f2f8fc3e0448a6583f54b9677))
+
 ## [2.2.2](https://github.com/postalsys/email-ai-tools/compare/v2.2.1...v2.2.2) (2026-10-14)
 
 
