@@ -1,6 +1,6 @@
 {
     "name": "@postalsys/email-ai-tools",
-    "version": "2.2.5",
+    "version": "2.2.6",
     "description": "Summarize and risk-score email messages with an OpenAI-compatible chat model",
     "main": "index.js",
     "scripts": {
