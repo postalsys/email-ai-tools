@@ -30,3 +30,6 @@ jobs:
             - run: npm run lint
             - run: npm run format:check
             - run: npm test
+            - name: CommonJS dependency graph (require(esm) disabled)
+              if: matrix.node-version != '20.x'
+              run: npm run test:cjs

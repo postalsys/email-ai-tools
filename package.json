@@ -10,7 +10,8 @@
         "lint:fix": "eslint . --fix",
         "format": "prettier --write .",
         "format:check": "prettier --check .",
-        "update": "rm -rf node_modules package-lock.json && ncu -u && npm install"
+        "update": "rm -rf node_modules package-lock.json && ncu -u && npm install",
+        "test:cjs": "NODE_OPTIONS=--no-experimental-require-module npm test"
     },
     "repository": {
         "type": "git",
