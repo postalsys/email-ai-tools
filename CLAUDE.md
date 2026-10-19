@@ -55,7 +55,7 @@ which dependencies this library may use.
 
 ## Technology Stack
 
-- **Runtime**: Node.js (CI tests on 22 and 24). No build step - plain CommonJS.
+- **Runtime**: Node.js >= 20 (CI tests on 20, 22 and 24). No build step - plain CommonJS.
 - **Module system**: CommonJS (`'use strict';`, `require`/`module.exports`).
 - **HTTP**: `undici` (`fetch` + `Agent`) for all outbound API calls.
 - **Token budgeting**: a character-based estimate in `lib/token-estimate.js` (no
@@ -68,11 +68,27 @@ which dependencies this library may use.
 ## Development Commands
 
 ```
-npm test          # Run the test suite (node --test test/*.test.js)
-npm run lint      # Lint with ESLint
-npm run format    # Format code with Prettier
-npm run update    # Refresh deps: remove node_modules + lockfile, ncu -u, npm install
+npm test                # Run the test suite (node --test test/*.test.js)
+npm run test:coverage   # Run the suite under c8 coverage
+npm run lint            # eslint .
+npm run lint:fix        # eslint . --fix
+npm run format          # prettier --write .
+npm run format:check    # prettier --check .
+npm run update          # Refresh deps: remove node_modules + lockfile, ncu -u, npm install
 ```
+
+Run a single test file, or a single test by name:
+
+```
+node --test test/signals.test.js
+node --test --test-name-pattern="lookalike" test/*.test.js
+```
+
+ESLint uses the shared Postal Systems flat config (`eslint.config.js`, kept
+identical across repos except its "Repo-specific" block, which here turns off
+`no-await-in-loop` for the intentional sequential retry loops). Prettier options
+live in `.prettierrc.js`. CI (`.github/workflows/test.yaml`) runs lint,
+format:check and the tests on every matrix job.
 
 ## Testing
 
@@ -104,10 +120,10 @@ ESM-only versions of existing packages.
 
 - Use `npm run update` to bump dependencies (it runs `ncu -u` then a clean
   install). Respect the `reject` list in `.ncurc.js`.
-- After updating, run `npm test`, `npm run lint`, and
-  `npx prettier --check "**/*.{js,json,md}"` to confirm nothing broke.
-- Keep `package.json` versions exact (no `^`/`~` ranges) to match the existing
-  convention and keep `pkg` builds reproducible.
+- After updating, run `npm test`, `npm run lint`, and `npm run format:check`
+  to confirm nothing broke.
+- Keep `package.json` versions exact (no `^`/`~` ranges), dev dependencies
+  included, to match the existing convention and keep `pkg` builds reproducible.
 
 ## Versioning & Releases
 
