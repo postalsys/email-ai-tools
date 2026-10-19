@@ -30,15 +30,15 @@
         "eslint": "10.13.0",
         "eslint-config-prettier": "10.1.8",
         "globals": "17.13.0",
-        "mailparser": "3.9.46",
+        "mailparser": "3.9.47",
         "prettier": "3.9.10"
     },
     "dependencies": {
-        "@postalsys/email-text-tools": "2.4.25",
+        "@postalsys/email-text-tools": "2.4.26",
         "dom-serializer": "2.0.0",
         "domutils": "3.2.2",
         "htmlparser2": "10.1.0",
-        "libmime": "5.5.1",
+        "libmime": "5.5.2",
         "tldts": "7.4.18",
         "undici": "7.30.1"
     },
