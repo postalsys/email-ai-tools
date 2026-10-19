@@ -2,8 +2,8 @@
 
 const { describe, it, before, after, beforeEach } = require('node:test');
 const assert = require('node:assert/strict');
-const { createMockServer, modelsResponse, errorResponse } = require('./helpers/mock-server');
-const { listModels, describeModel, nonChatModelPattern } = require('../lib/list-models');
+const { createMockServer, modelsResponse, errorResponse } = require('./helpers/mock-server.cjs');
+const { listModels, describeModel, nonChatModelPattern } = require('@postalsys/email-ai-tools/lib/list-models');
 
 describe('listModels', () => {
     let mock;

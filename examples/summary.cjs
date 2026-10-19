@@ -1,7 +1,7 @@
 'use strict';
 
 const fs = require('fs').promises;
-const { generateSummary } = require('../lib/generate-summary');
+const { generateSummary } = require('@postalsys/email-ai-tools/lib/generate-summary');
 const simpleParser = require('mailparser').simpleParser;
 const libmime = require('libmime');
 const util = require('util');

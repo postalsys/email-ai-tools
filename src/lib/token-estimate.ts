@@ -1,5 +1,3 @@
-'use strict';
-
 // Token counts are estimated from characters instead of running a BPE tokenizer. The GPT-3
 // tokenizer this library used to load does not match current model vocabularies anyway, costs
 // ~15 MB of heap per instance, and is super-linear on long unbroken runs (a 64 KB CJK body took
@@ -18,7 +16,7 @@ const DEFAULT_MAX_ALLOWED_TOKENS = 30000;
 
 // Cost of one UTF-16 code unit in "ASCII character" units. The text travels JSON encoded, so the
 // characters that encoding escapes count double
-function charUnits(code) {
+function charUnits(code: number): number {
     if (code < 0x20 || code === 0x22 || code === 0x5c) {
         return 2;
     }
@@ -31,11 +29,10 @@ function charUnits(code) {
 /**
  * Estimates how many tokens a string takes
  *
- * @param {string} str
- * @returns {number} Estimated token count
+ * @returns Estimated token count
  */
-function estimateTokens(str) {
-    str = (str || '').toString();
+function estimateTokens(input?: string | null): number {
+    const str = (input || '').toString();
 
     let units = 0;
     for (let i = 0; i < str.length; i++) {
@@ -50,12 +47,10 @@ function estimateTokens(str) {
  * Returns the length of the longest prefix of `str` that fits into `maxTokens` by the same
  * estimate as estimateTokens(). Never ends between the two halves of a surrogate pair.
  *
- * @param {string} str
- * @param {number} maxTokens
- * @returns {number} Prefix length in UTF-16 code units
+ * @returns Prefix length in UTF-16 code units
  */
-function fitLength(str, maxTokens) {
-    str = (str || '').toString();
+function fitLength(input: string | null | undefined, maxTokens: number): number {
+    const str = (input || '').toString();
 
     if (!(maxTokens > 0)) {
         return 0;
@@ -77,7 +72,7 @@ function fitLength(str, maxTokens) {
 }
 
 // Moves a cut position back by one if it would separate a surrogate pair
-function keepSurrogatePair(str, pos) {
+function keepSurrogatePair(str: string, pos: number): number {
     if (pos > 0 && pos < str.length) {
         const prev = str.charCodeAt(pos - 1);
         if (prev >= 0xd800 && prev <= 0xdbff) {
@@ -90,39 +85,47 @@ function keepSurrogatePair(str, pos) {
 /**
  * Cuts a string to at most `maxLength` UTF-16 code units, never between the halves of a
  * surrogate pair
- *
- * @param {string} str
- * @param {number} maxLength
- * @returns {string}
  */
-function truncate(str, maxLength) {
-    str = (str || '').toString();
+function truncate(input: unknown, maxLength: number): string {
+    const str = ((input || '') as { toString(): string }).toString();
     return str.length > maxLength ? str.substring(0, keepSurrogatePair(str, maxLength)) : str;
+}
+
+export interface FitPromptOptions {
+    /** Variable part of the prompt, the only part that gets shortened */
+    text?: string | null | undefined;
+    /** Hard cap on the text length (default MAX_ALLOWED_TEXT_LENGTH) */
+    maxLength?: number | undefined;
+    /** Token budget for the whole prompt (default DEFAULT_MAX_ALLOWED_TOKENS) */
+    maxTokens?: number | null | undefined;
+    /** The fixed parts, as strings to estimate or as token counts already estimated */
+    overhead?: Array<string | number> | string | number | undefined;
+}
+
+export interface PromptTooLongError extends Error {
+    code?: string;
+    originalLength?: number;
+    charactersRemoved?: number;
+    maxAllowedTokens?: number;
 }
 
 /**
  * Cuts `text` so that it fits into `maxTokens` estimated tokens next to the fixed parts of the
  * prompt
  *
- * @param {Object} opts
- * @param {string} opts.text - Variable part of the prompt, the only part that gets shortened
- * @param {number} [opts.maxLength=MAX_ALLOWED_TEXT_LENGTH] - Hard cap on the text length
- * @param {number} [opts.maxTokens=DEFAULT_MAX_ALLOWED_TOKENS] - Token budget for the whole prompt
- * @param {Array<string|number>|string|number} [opts.overhead] - The fixed parts, as strings to estimate or as token counts already estimated
- * @returns {{text: string, charactersRemoved: number}}
- * @throws {Error} PROMPT_TOO_LONG if the fixed parts alone do not fit
+ * @throws Error with code PROMPT_TOO_LONG if the fixed parts alone do not fit
  */
-function fitPrompt({ text, maxLength, maxTokens, overhead }) {
+function fitPrompt({ text, maxLength, maxTokens, overhead }: FitPromptOptions): { text: string; charactersRemoved: number } {
     text = (text || '').toString();
     maxLength = maxLength || MAX_ALLOWED_TEXT_LENGTH;
     maxTokens = maxTokens || DEFAULT_MAX_ALLOWED_TOKENS;
 
-    const overheadTokens = []
+    const overheadTokens = ([] as Array<string | number>)
         .concat(overhead === undefined ? [] : overhead)
-        .reduce((sum, part) => sum + (typeof part === 'number' ? part : estimateTokens(part)), 0);
+        .reduce((sum: number, part) => sum + (typeof part === 'number' ? part : estimateTokens(part)), 0);
 
     if (overheadTokens > maxTokens) {
-        const error = new Error(
+        const error: PromptTooLongError = new Error(
             `Unable to fit email content within token limit of ${maxTokens}. ` +
                 `Original text length: ${text.length} characters. ` +
                 `The prompt without the email text is already estimated at ${overheadTokens} tokens. ` +
@@ -141,4 +144,4 @@ function fitPrompt({ text, maxLength, maxTokens, overhead }) {
     return { text: fitted, charactersRemoved: text.length - fitted.length };
 }
 
-module.exports = { estimateTokens, fitLength, fitPrompt, truncate, DEFAULT_MAX_ALLOWED_TOKENS };
+export { estimateTokens, fitLength, fitPrompt, truncate, DEFAULT_MAX_ALLOWED_TOKENS };

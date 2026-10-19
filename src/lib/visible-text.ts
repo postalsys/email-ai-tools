@@ -1,9 +1,35 @@
-'use strict';
+import { parseDocument } from 'htmlparser2';
+import serialize from 'dom-serializer';
+import { isTag, isText, isComment, hasChildren, textContent, findAll, findOne, prependChild, removeElement } from 'domutils';
+import { truncate } from './token-estimate.js';
 
-const { parseDocument } = require('htmlparser2');
-const { default: serialize } = require('dom-serializer');
-const { isTag, isText, isComment, hasChildren, textContent, findAll, findOne, prependChild, removeElement } = require('domutils');
-const { truncate } = require('./token-estimate');
+// The node types of the parsed document, as the parser and domutils declare them
+type HtmlDocument = ReturnType<typeof parseDocument>;
+type HtmlNode = HtmlDocument['children'][number];
+type HtmlElement = ReturnType<typeof findAll>[number];
+
+/** A link of the message: its target and the text a reader takes as its destination */
+export interface MessageLink {
+    href: string;
+    text: string;
+}
+
+/** What visibleHtml() found */
+export interface VisibleHtml {
+    /** Every link the HTML carries, hidden or not */
+    links: MessageLink[];
+    /** How many styled-away elements carrying text were dropped */
+    hiddenElements: number;
+    /** How many invisible characters were dropped */
+    invisibleCharacters: number;
+    /** The visible HTML, serialised only when asked for */
+    html: () => string;
+}
+
+interface Stats {
+    hiddenElements: number;
+    invisibleCharacters: number;
+}
 
 // What the reader never sees must not reach the model either: an email can carry instructions
 // for an AI in text a mail client does not render, and the summary has to describe the message
@@ -34,8 +60,8 @@ const INVISIBLE_CHARS = /[\u00ad\u200b-\u200f\u2028-\u202e\u2060-\u2064\u2066-\u
 
 // Only what reliably hides text. Zero sizes of boxes and negative positions depend on other
 // properties to hide anything, so they are left alone rather than dropping text the reader sees
-function isHiddenStyle(style) {
-    style = String(style ?? '').replace(STYLE_NOISE, ' ');
+function isHiddenStyle(input: unknown): boolean {
+    const style = String(input ?? '').replace(STYLE_NOISE, ' ');
     if (!style.trim()) {
         return false;
     }
@@ -79,8 +105,8 @@ function isHiddenStyle(style) {
     return false;
 }
 
-function isHiddenElement(node) {
-    const attribs = node.attribs || {};
+function isHiddenElement(node: HtmlElement): boolean {
+    const attribs: Record<string, string> = node.attribs || {};
     const style = attribs.style || '';
     // the hidden attribute is a user agent rule, which an author display value overrides
     if ('hidden' in attribs && !/display\s*:\s*(?!none)/i.test(style.replace(STYLE_NOISE, ' '))) {
@@ -89,14 +115,14 @@ function isHiddenElement(node) {
     return isHiddenStyle(style);
 }
 
-function hasText(node) {
+function hasText(node: HtmlNode): boolean {
     if (isText(node)) {
         return /\S/.test(node.data || '');
     }
     return hasChildren(node) && node.children.some(hasText);
 }
 
-function stripHidden(node, stats) {
+function stripHidden(node: HtmlNode | HtmlDocument, stats: Stats): void {
     if (!hasChildren(node)) {
         return;
     }
@@ -133,7 +159,7 @@ function stripHidden(node, stats) {
 
 // What the reader takes as the link: its text, and the alt and title of an image standing in
 // for it
-function linkText(node) {
+function linkText(node: HtmlElement): string {
     const parts = [textContent(node), node.attribs.title || ''];
     for (const image of findAll(child => child.name === 'img', node.children)) {
         parts.push(image.attribs.alt || '', image.attribs.title || '');
@@ -141,7 +167,7 @@ function linkText(node) {
     return truncate(parts.join(' ').replace(/\s+/g, ' ').trim(), MAX_LINK_TEXT_LENGTH);
 }
 
-function collectLinks(document) {
+function collectLinks(document: HtmlDocument): MessageLink[] {
     const targets = findAll(
         node => ((node.name === 'a' || node.name === 'area') && !!node.attribs.href) || (node.name === 'form' && !!node.attribs.action),
         document.children
@@ -149,16 +175,9 @@ function collectLinks(document) {
     return targets.map(node => ({ href: node.attribs.href || node.attribs.action, text: linkText(node) }));
 }
 
-/**
- * Parses an HTML message once: every link it carries, for the checks, and the document as the
- * reader sees it, for the model
- *
- * @param {string} html
- * @returns {{links: Array<{href: string, text: string}>, hiddenElements: number, invisibleCharacters: number, html: Function}} The links, how many styled-away elements carrying text were dropped, how many invisible characters, and the visible HTML as a function, serialised only when asked for
- */
 // A browser shows flow content a message put inside <head>, the converter reads only <body>:
 // what is left of the head after the metadata went moves to the front of the body
-function surfaceHead(document) {
+function surfaceHead(document: HtmlDocument): void {
     const head = findOne(node => node.name === 'head', document.children);
     if (!head) {
         return;
@@ -174,10 +193,14 @@ function surfaceHead(document) {
     removeElement(head);
 }
 
-function visibleHtml(html) {
+/**
+ * Parses an HTML message once: every link it carries, for the checks, and the document as the
+ * reader sees it, for the model
+ */
+function visibleHtml(html: string): VisibleHtml {
     const document = parseDocument(truncate(html, MAX_HTML_LENGTH).replace(CONDITIONAL_COMMENT, ''));
     const links = collectLinks(document);
-    const stats = { hiddenElements: 0, invisibleCharacters: 0 };
+    const stats: Stats = { hiddenElements: 0, invisibleCharacters: 0 };
     stripHidden(document, stats);
     surfaceHead(document);
     return { links, hiddenElements: stats.hiddenElements, invisibleCharacters: stats.invisibleCharacters, html: () => serialize(document) };
@@ -186,13 +209,11 @@ function visibleHtml(html) {
 /**
  * Removes the characters that take no space on screen
  *
- * @param {string} text
- * @returns {{text: string, invisibleCharacters: number}}
  */
-function visibleText(text) {
-    text = String(text ?? '');
+function visibleText(input: unknown): { text: string; invisibleCharacters: number } {
+    const text = String(input ?? '');
     const matches = text.match(INVISIBLE_CHARS);
     return { text: matches ? text.replace(INVISIBLE_CHARS, '') : text, invisibleCharacters: matches ? matches.length : 0 };
 }
 
-module.exports = { visibleHtml, visibleText, INVISIBLE_CHARS, MAX_HTML_LENGTH, MAX_LINK_TEXT_LENGTH };
+export { visibleHtml, visibleText, INVISIBLE_CHARS, MAX_HTML_LENGTH, MAX_LINK_TEXT_LENGTH };

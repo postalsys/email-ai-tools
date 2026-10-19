@@ -2,8 +2,8 @@
 
 const { describe, it, before, after, beforeEach } = require('node:test');
 const assert = require('node:assert/strict');
-const { createMockServer, modelsResponse } = require('./helpers/mock-server');
-const { apiRequest, MAX_RESPONSE_SIZE, DEFAULT_TIMEOUT } = require('../lib/api-request');
+const { createMockServer, modelsResponse } = require('./helpers/mock-server.cjs');
+const { apiRequest, MAX_RESPONSE_SIZE, DEFAULT_TIMEOUT } = require('@postalsys/email-ai-tools/lib/api-request');
 
 const HTML_502 = '<html><head><title>502 Bad Gateway</title></head><body><center><h1>502 Bad Gateway</h1></center></body></html>';
 

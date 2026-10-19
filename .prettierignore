@@ -3,3 +3,4 @@ coverage
 dist
 package-lock.json
 CHANGELOG.md
+src/package-info.ts

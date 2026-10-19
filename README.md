@@ -8,7 +8,7 @@ Summarize and risk-score email messages with an OpenAI-compatible chat model. Th
 npm install @postalsys/email-ai-tools
 ```
 
-Node.js 20 or later. Plain CommonJS with no build step and no native dependencies.
+Node.js 20 or later, no native dependencies. Ships ES module and CommonJS builds with type declarations: `import { generateSummary } from '@postalsys/email-ai-tools'` and `require('@postalsys/email-ai-tools')` both work.
 
 ## generateSummary(message, apiToken, options)
 

@@ -2,8 +2,8 @@
 
 const { describe, it } = require('node:test');
 const assert = require('node:assert/strict');
-const { collectSignals, modelSignals, applySignals, isLookalikeHost, splitAddress } = require('../lib/signals');
-const { MAX_LINK_TEXT_LENGTH } = require('../lib/visible-text');
+const { collectSignals, modelSignals, applySignals, isLookalikeHost, splitAddress } = require('@postalsys/email-ai-tools/lib/signals');
+const { MAX_LINK_TEXT_LENGTH } = require('@postalsys/email-ai-tools/lib/visible-text');
 
 const codes = signals => signals.map(signal => signal.code);
 

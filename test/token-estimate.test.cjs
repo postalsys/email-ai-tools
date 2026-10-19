@@ -2,8 +2,8 @@
 
 const { describe, it, before, after, beforeEach } = require('node:test');
 const assert = require('node:assert/strict');
-const { createMockServer, chatResponse } = require('./helpers/mock-server');
-const { estimateTokens, fitLength, fitPrompt, truncate } = require('../lib/token-estimate');
+const { createMockServer, chatResponse } = require('./helpers/mock-server.cjs');
+const { estimateTokens, fitLength, fitPrompt, truncate } = require('@postalsys/email-ai-tools/lib/token-estimate');
 const { generateSummary } = require('..');
 
 // 64 KB of CJK text with no whitespace or punctuation, the input that made the old tokenizer

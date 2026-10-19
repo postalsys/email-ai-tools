@@ -1,8 +1,40 @@
-'use strict';
+import type { Dispatcher } from 'undici';
+import { apiRequest } from './api-request.js';
 
-const { apiRequest } = require('./api-request');
+import { getApiUrl, OPENAI_API_BASE_URL } from './get-api-url.js';
 
-const { getApiUrl, OPENAI_API_BASE_URL } = require('./get-api-url');
+export interface ModelDescription {
+    description: string;
+    recommended: boolean;
+}
+
+/** A model listModels() returns: the entry the API listed, with a display name and a description */
+export interface ModelEntry extends ModelDescription {
+    id: string;
+    name: string;
+    [key: string]: unknown;
+}
+
+export interface ListModelsOptions {
+    /** Custom API base URL (default: OpenAI API) */
+    baseApiUrl?: string | undefined;
+    /** Leave out models that are not chat models (default true) */
+    chatOnly?: boolean | undefined;
+    /** Log the request and include the request time */
+    verbose?: boolean | undefined;
+    /** undici Dispatcher the request is sent through */
+    dispatcher?: Dispatcher | undefined;
+    /** Aborts the request */
+    signal?: AbortSignal | undefined;
+}
+
+interface Decorated {
+    entry: { id: string; [key: string]: unknown };
+    group: number;
+    version: number;
+    dated: boolean;
+    preview: boolean;
+}
 
 const OPENAI_API_MODELS = '/v1/models';
 const OPENAI_API_HOST = new URL(OPENAI_API_BASE_URL).hostname;
@@ -22,7 +54,7 @@ const DATED_SNAPSHOT = /-\d{4}-\d{2}-\d{2}$|-\d{4,}$/;
 // What a model is good for, by family, for a picker that shows more than a name. Recommended
 // marks the ones that suit email triage: capable enough for it and cheap enough to run on every
 // message. Prices change, so the notes stay qualitative
-const MODEL_NOTES = [
+const MODEL_NOTES: Array<[RegExp, string, boolean]> = [
     [/^gpt-6-luna/, 'Fast and inexpensive, built for high-volume work like this', true],
     [/^gpt-6(?:\.\d+)?-sol/, 'Mid-priced reasoning model', true],
     [/^gpt-6-astra/, 'Most capable and most expensive', false],
@@ -42,11 +74,11 @@ const MODEL_NOTES = [
 /**
  * A short note on a model and whether it suits email triage
  *
- * @param {string} id - Model name
- * @returns {{description: string, recommended: boolean}} An empty description for a name nothing is known about
+ * @param input - Model name
+ * @returns An empty description for a name nothing is known about
  */
-function describeModel(id) {
-    id = String(id ?? '');
+function describeModel(input: unknown): ModelDescription {
+    const id = String(input ?? '');
     const dated = DATED_SNAPSHOT.test(id);
     for (const [pattern, description, recommended] of MODEL_NOTES) {
         if (pattern.test(id)) {
@@ -58,23 +90,22 @@ function describeModel(id) {
 
 const collator = new Intl.Collator('en', { numeric: true });
 
-/**
- * The pattern of model names listModels() leaves out for an endpoint
- *
- * @param {string} [baseApiUrl] - Base API URL (default: OpenAI API)
- * @returns {RegExp}
- */
-function isOpenAiEndpoint(baseApiUrl) {
+function isOpenAiEndpoint(baseApiUrl?: string | null): boolean {
     return new URL(baseApiUrl || OPENAI_API_BASE_URL).hostname === OPENAI_API_HOST;
 }
 
-function nonChatModelPattern(baseApiUrl) {
+/**
+ * The pattern of model names listModels() leaves out for an endpoint
+ *
+ * @param baseApiUrl - Base API URL (default: OpenAI API)
+ */
+function nonChatModelPattern(baseApiUrl?: string | null): RegExp {
     return isOpenAiEndpoint(baseApiUrl) ? OPENAI_NON_CHAT_MODEL : GENERIC_NON_CHAT_MODEL;
 }
 
 // Sort key: GPT families first, newest first, then the o-series, then everything else; within a
 // family the plain name before dated snapshots and previews
-function decorate(entry) {
+function decorate(entry: Decorated['entry']): Decorated {
     const match = /^(gpt-|o)(\d+(?:\.\d+)?)/i.exec(entry.id);
     return {
         entry,
@@ -85,11 +116,17 @@ function decorate(entry) {
     };
 }
 
-function compare(a, b) {
-    return a.group - b.group || b.version - a.version || a.dated - b.dated || a.preview - b.preview || collator.compare(a.entry.id, b.entry.id);
+function compare(a: Decorated, b: Decorated): number {
+    return (
+        a.group - b.group ||
+        b.version - a.version ||
+        Number(a.dated) - Number(b.dated) ||
+        Number(a.preview) - Number(b.preview) ||
+        collator.compare(a.entry.id, b.entry.id)
+    );
 }
 
-function formatName(id) {
+function formatName(id: string): string {
     return id
         .replace(/-/g, ' ')
         .replace(/^.| ./g, c => c.toUpperCase())
@@ -97,23 +134,16 @@ function formatName(id) {
         .replace(/\b\d+k\b/gi, c => c.toUpperCase())
         .replace(/Dall E/g, 'Dall-E')
         .replace(/^Whisper /g, 'Whisper-')
-        .replace(/(\d{4}) (\d{2}) (\d{2})/g, (o, y, m, d) => `${y}-${m}-${d}`)
-        .replace(/^(gpt|tts)\s/gi, (o, n) => `${n.toUpperCase()}-`);
+        .replace(/(\d{4}) (\d{2}) (\d{2})/g, (o, y: string, m: string, d: string) => `${y}-${m}-${d}`)
+        .replace(/^(gpt|tts)\s/gi, (o, n: string) => `${n.toUpperCase()}-`);
 }
 
 /**
  * Lists the models the API endpoint serves, newest family first, with a display name for each
  *
- * @param {string} apiToken - API authentication token
- * @param {Object} [opts]
- * @param {string} [opts.baseApiUrl] - Custom API base URL (default: OpenAI API)
- * @param {boolean} [opts.chatOnly=true] - Leave out models that are not chat models
- * @param {boolean} [opts.verbose] - Log the request and include the request time
- * @param {Object} [opts.dispatcher] - undici Dispatcher the request is sent through
- * @param {AbortSignal} [opts.signal] - Aborts the request
- * @returns {Promise<{models: Array<{id: string, name: string, description: string, recommended: boolean}>}>}
+ * @param apiToken - API authentication token
  */
-async function listModels(apiToken, opts) {
+async function listModels(apiToken: string, opts?: ListModelsOptions | null): Promise<{ models: ModelEntry[]; _time?: number }> {
     opts = opts || {};
 
     const baseApiUrl = opts.baseApiUrl || OPENAI_API_BASE_URL;
@@ -128,18 +158,18 @@ async function listModels(apiToken, opts) {
 
     const nonChat = nonChatModelPattern(baseApiUrl);
     // the notes are about OpenAI's names; another endpoint's "mini" is whatever its operator pulled
-    const describe = isOpenAiEndpoint(baseApiUrl) ? describeModel : () => ({ description: '', recommended: false });
+    const describe = isOpenAiEndpoint(baseApiUrl) ? describeModel : (): ModelDescription => ({ description: '', recommended: false });
 
-    const response = {
-        models: []
+    const response: { models: ModelEntry[]; _time?: number } = {
+        models: ([] as any[])
             .concat((data && data.data) || [])
             .filter(
-                entry =>
+                (entry): entry is Decorated['entry'] =>
                     entry && typeof entry.id === 'string' && entry.id && entry.owned_by !== 'openai-dev' && (opts.chatOnly === false || !nonChat.test(entry.id))
             )
             .map(decorate)
             .sort(compare)
-            .map(({ entry }) => Object.assign(entry, { name: formatName(entry.id) }, describe(entry.id)))
+            .map(({ entry }): ModelEntry => Object.assign(entry, { name: formatName(entry.id) }, describe(entry.id)))
     };
 
     if (opts.verbose) {
@@ -149,4 +179,4 @@ async function listModels(apiToken, opts) {
     return response;
 }
 
-module.exports = { listModels, describeModel, nonChatModelPattern };
+export { listModels, describeModel, nonChatModelPattern };

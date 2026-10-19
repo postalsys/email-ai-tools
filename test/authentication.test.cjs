@@ -2,7 +2,7 @@
 
 const { describe, it } = require('node:test');
 const assert = require('node:assert/strict');
-const { parseAuthenticationResults, isTrustedAuthservId, authenticationBlock, authenticationFailed } = require('../lib/authentication');
+const { parseAuthenticationResults, isTrustedAuthservId, authenticationBlock, authenticationFailed } = require('@postalsys/email-ai-tools/lib/authentication');
 
 describe('parseAuthenticationResults', () => {
     it('reads the authserv-id and the first result of each method', () => {

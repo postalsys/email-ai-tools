@@ -3,7 +3,7 @@
 const { describe, it, before, after, beforeEach } = require('node:test');
 const assert = require('node:assert/strict');
 const { Agent } = require('undici');
-const { createMockServer, chatResponse, modelsResponse } = require('./helpers/mock-server');
+const { createMockServer, chatResponse, modelsResponse } = require('./helpers/mock-server.cjs');
 const { generateSummary, listModels } = require('..');
 
 // A real undici Agent that counts what was dispatched through it, so a test can tell the request

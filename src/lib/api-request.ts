@@ -1,10 +1,39 @@
-'use strict';
+import { fetch as fetchCmd, Agent } from 'undici';
+import type { Dispatcher, Response } from 'undici';
+import timers from 'node:timers/promises';
+import crypto from 'node:crypto';
+import util from 'node:util';
+import { name as packageName, version as packageVersion } from '../package-info.js';
 
-const { fetch: fetchCmd, Agent } = require('undici');
-const { setTimeout: delay } = require('timers/promises');
-const crypto = require('crypto');
-const util = require('util');
-const packageData = require('../package.json');
+/** An error from apiRequest(), with what the API said about it */
+export interface ApiRequestError extends Error {
+    code?: string;
+    statusCode?: number;
+    /** Which request parameter a 400 is about, when the API says */
+    param?: string;
+    type?: string;
+    /** Seconds the API asked to wait, from a 429 */
+    retryAfter?: number;
+    /** The start of a response that was not JSON */
+    responseText?: string;
+}
+
+export interface ApiRequestOptions {
+    /** Default 'post' */
+    method?: string | undefined;
+    /** Sent as a Bearer token */
+    apiToken: string;
+    /** JSON request body */
+    payload?: unknown;
+    /** undici Dispatcher, the module's own agent when omitted */
+    dispatcher?: Dispatcher | undefined;
+    /** Aborts the request and any retry wait; without one the call is given `timeout` in all */
+    signal?: AbortSignal | undefined;
+    /** Deadline in milliseconds for the whole call when no signal is given (default DEFAULT_TIMEOUT) */
+    timeout?: number | undefined;
+    /** Logs the request and the response to stderr */
+    verbose?: boolean | undefined;
+}
 
 const fetchAgent = new Agent({ connect: { timeout: 90 * 1000 } });
 
@@ -21,12 +50,12 @@ const MAX_RETRY_DELAY_MS = 20 * 1000;
 const MAX_RESPONSE_SIZE = 8 * 1024 * 1024;
 const RESPONSE_SNIPPET_LENGTH = 512;
 
-async function sleep(ms, signal) {
+async function sleep(ms: number, signal: AbortSignal): Promise<void> {
     try {
-        await delay(ms, undefined, { signal });
+        await timers.setTimeout(ms, undefined, { signal });
     } catch (err) {
         // report the caller's own abort reason, not the generic AbortError of the timer
-        if (err.name === 'AbortError' && signal && signal.aborted) {
+        if ((err as Error).name === 'AbortError' && signal && signal.aborted) {
             throw signal.reason;
         }
         throw err;
@@ -34,7 +63,7 @@ async function sleep(ms, signal) {
 }
 
 // Returns the requested delay in milliseconds, or null if the response does not name one
-function getRetryAfter(headers) {
+function getRetryAfter(headers: Response['headers']): number | null {
     // Azure OpenAI sends the millisecond variant
     const retryAfterMs = (headers.get('retry-after-ms') || '').trim();
     if (/^\d+(\.\d+)?$/.test(retryAfterMs)) {
@@ -55,14 +84,14 @@ function getRetryAfter(headers) {
     return null;
 }
 
-async function readBody(res, maxSize) {
+async function readBody(res: Response, maxSize: number): Promise<string> {
     const declared = Number(res.headers.get('content-length'));
     if (declared > maxSize) {
         await res.body?.cancel().catch(() => false);
         throw responseTooLarge(res, maxSize);
     }
 
-    const chunks = [];
+    const chunks: Buffer[] = [];
     let size = 0;
     if (res.body) {
         for await (const chunk of res.body) {
@@ -71,20 +100,20 @@ async function readBody(res, maxSize) {
                 // leaving the loop cancels the stream
                 throw responseTooLarge(res, maxSize);
             }
-            chunks.push(chunk);
+            chunks.push(chunk as Buffer);
         }
     }
     return Buffer.concat(chunks).toString('utf-8');
 }
 
-function responseTooLarge(res, maxSize) {
-    const error = new Error(`API response exceeds the maximum allowed size of ${maxSize} bytes`);
+function responseTooLarge(res: Response, maxSize: number): ApiRequestError {
+    const error: ApiRequestError = new Error(`API response exceeds the maximum allowed size of ${maxSize} bytes`);
     error.code = 'ResponseTooLarge';
     error.statusCode = res.status;
     return error;
 }
 
-function errorMessage(apiError) {
+function errorMessage(apiError: any): string {
     if (typeof apiError === 'string') {
         return apiError;
     }
@@ -101,23 +130,15 @@ function errorMessage(apiError) {
 /**
  * Sends a request to an OpenAI-compatible API and returns the parsed JSON response body
  *
- * @param {string} url - Request URL
- * @param {Object} opts
- * @param {string} [opts.method='post']
- * @param {string} opts.apiToken - Sent as a Bearer token
- * @param {Object} [opts.payload] - JSON request body
- * @param {Object} [opts.dispatcher] - undici Dispatcher, the module's own agent when omitted
- * @param {AbortSignal} [opts.signal] - Aborts the request and any retry wait; without one the call is given `timeout` in all
- * @param {number} [opts.timeout=DEFAULT_TIMEOUT] - Deadline in milliseconds for the whole call when no signal is given
- * @param {boolean} [opts.verbose] - Logs the request and the response to stderr
- * @returns {Promise<{data: Object, time: number}>} Parsed response body and the time the request took in milliseconds
+ * @param url - Request URL
+ * @returns Parsed response body and the time the request took in milliseconds
  */
-async function apiRequest(url, opts) {
+async function apiRequest(url: string, opts: ApiRequestOptions): Promise<{ data: any; time: number }> {
     const { method, apiToken, payload, dispatcher, verbose } = opts;
     const signal = opts.signal || AbortSignal.timeout(opts.timeout || DEFAULT_TIMEOUT);
 
     const headers = {
-        'User-Agent': `${packageData.name}/${packageData.version}`,
+        'User-Agent': `${packageName}/${packageVersion}`,
         Authorization: `Bearer ${apiToken}`,
         'Content-Type': 'application/json'
     };
@@ -133,14 +154,14 @@ async function apiRequest(url, opts) {
         const res = await fetchCmd(url, {
             method: method || 'post',
             headers,
-            body: payload ? JSON.stringify(payload) : undefined,
+            body: payload ? JSON.stringify(payload) : null,
             dispatcher: dispatcher || fetchAgent,
             signal
         });
 
         const text = await readBody(res, MAX_RESPONSE_SIZE);
 
-        let data = null;
+        let data: any = null;
         try {
             data = JSON.parse(text);
         } catch {
@@ -158,7 +179,7 @@ async function apiRequest(url, opts) {
                 }
             }
 
-            let error;
+            let error: ApiRequestError;
             if (data && data.error) {
                 error = new Error(errorMessage(data.error));
                 if (data.error.code) {
@@ -188,7 +209,7 @@ async function apiRequest(url, opts) {
 
         if (!data) {
             // not JSON at all, or a JSON null
-            const error = new Error('Invalid JSON in API response');
+            const error: ApiRequestError = new Error('Invalid JSON in API response');
             error.code = 'InvalidResponse';
             error.statusCode = res.status;
             error.responseText = text.substring(0, RESPONSE_SNIPPET_LENGTH);
@@ -205,4 +226,4 @@ async function apiRequest(url, opts) {
     }
 }
 
-module.exports = { apiRequest, MAX_RESPONSE_SIZE, DEFAULT_TIMEOUT };
+export { apiRequest, MAX_RESPONSE_SIZE, DEFAULT_TIMEOUT };

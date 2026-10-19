@@ -1,5 +1,3 @@
-'use strict';
-
 // The Authentication-Results header (RFC 8601) is where the receiving server records what it
 // verified about the sender. A sender can add one of its own, so only a header the receiving
 // server added counts, and that is told by its authserv-id: the name of the server that wrote
@@ -7,11 +5,27 @@
 
 const METHODS = ['spf', 'dkim', 'dmarc', 'arc'];
 
+/** The parsed results, the first one per method */
+export type AuthenticationResults = Partial<Record<'spf' | 'dkim' | 'dmarc' | 'arc', string>>;
+
+/** The authentication block of the model's input */
+export interface AuthenticationBlock extends AuthenticationResults {
+    verified: boolean;
+    authservId?: string | undefined;
+}
+
+/** Which authserv-ids count as the receiving server */
+export interface AuthenticationTrust {
+    /** Lower-case names */
+    trustedAuthservIds: string[];
+    acceptUnnamedAuthentication: boolean;
+}
+
 // Splits a header value on the semicolons outside comments and quoted strings, which may carry
 // semicolons of their own and whose content a trusted server copies from the message. Comments
 // nest, and both are dropped from the pieces, since the grammar needs neither
-function splitResinfo(value) {
-    const segments = [];
+function splitResinfo(value: string): string[] {
+    const segments: string[] = [];
     let current = '';
     let depth = 0;
     let quoted = false;
@@ -60,16 +74,16 @@ function splitResinfo(value) {
 /**
  * Parses one Authentication-Results header value
  *
- * @param {string} value - Header value, unfolded
- * @returns {{authservId: string|null, results: Object}|null} The authserv-id (null when the header carries none, as Microsoft's do) and the first result per method
+ * @param value - Header value, unfolded
+ * @returns The authserv-id (null when the header carries none, as Microsoft's do) and the first result per method
  */
-function parseAuthenticationResults(value) {
+function parseAuthenticationResults(value: unknown): { authservId: string | null; results: AuthenticationResults } | null {
     const segments = splitResinfo(String(value ?? ''));
     if (!segments.length) {
         return null;
     }
 
-    let authservId = null;
+    let authservId: string | null = null;
     const first = segments[0];
     const firstToken = first.split(/\s+/)[0];
     if (!first.includes('=')) {
@@ -82,13 +96,13 @@ function parseAuthenticationResults(value) {
         segments[0] = first.substring(firstToken.length).trim();
     }
 
-    const results = {};
+    const results: AuthenticationResults = {};
     for (const segment of segments) {
         const match = /^([a-z0-9-]+)\s*=\s*([a-z0-9-]+)/i.exec(segment);
         if (!match) {
             continue;
         }
-        const method = match[1].toLowerCase();
+        const method = match[1].toLowerCase() as keyof AuthenticationResults;
         const result = match[2].toLowerCase();
         if (!METHODS.includes(method)) {
             continue;
@@ -107,30 +121,24 @@ function parseAuthenticationResults(value) {
  * Tells whether an authserv-id names a server the caller trusts: the name itself or a host
  * under it
  *
- * @param {string|null} authservId
- * @param {string[]} trusted - Trusted names, lower case
- * @param {boolean} acceptUnnamed - Whether a header without an authserv-id counts, for providers that write none
- * @returns {boolean}
+ * @param trusted - Trusted names, lower case
+ * @param acceptUnnamed - Whether a header without an authserv-id counts, for providers that write none
  */
-function isTrustedAuthservId(authservId, trusted, acceptUnnamed) {
+function isTrustedAuthservId(authservId: string | null | undefined, trusted: string[] | string | null | undefined, acceptUnnamed?: boolean): boolean {
     if (!authservId) {
         return !!acceptUnnamed;
     }
     const id = authservId.toLowerCase();
-    return [].concat(trusted || []).some(name => name && (id === name || id.endsWith(`.${name}`)));
+    return ([] as string[]).concat(trusted || []).some(name => name && (id === name || id.endsWith(`.${name}`)));
 }
 
 /**
  * The authentication block of the model's input: the receiving server's verdict, marked as
  * verified when the server that wrote it is one the caller trusts
  *
- * @param {string} value - The topmost Authentication-Results header value
- * @param {Object} trust
- * @param {string[]} trust.trustedAuthservIds - Lower-case names
- * @param {boolean} trust.acceptUnnamedAuthentication
- * @returns {Object|null}
+ * @param value - The topmost Authentication-Results header value
  */
-function authenticationBlock(value, trust) {
+function authenticationBlock(value: unknown, trust: AuthenticationTrust): AuthenticationBlock | null {
     const parsed = parseAuthenticationResults(value);
     if (!parsed) {
         return null;
@@ -148,18 +156,17 @@ function authenticationBlock(value, trust) {
  * Whether a verified verdict says the sender failed: DMARC failed outright, or both SPF and
  * DKIM did without DMARC saying otherwise
  *
- * @param {Object|null} authentication - As returned by authenticationBlock()
- * @returns {boolean}
+ * @param authentication - As returned by authenticationBlock()
  */
-function authenticationFailed(authentication) {
+function authenticationFailed(authentication: AuthenticationBlock | null | undefined): boolean {
     if (!authentication || !authentication.verified) {
         return false;
     }
     if (authentication.dmarc === 'fail') {
         return true;
     }
-    const failed = result => ['fail', 'softfail', 'permerror'].includes(result);
+    const failed = (result: string | undefined): boolean => ['fail', 'softfail', 'permerror'].includes(result as string);
     return !authentication.dmarc && failed(authentication.spf) && failed(authentication.dkim);
 }
 
-module.exports = { parseAuthenticationResults, isTrustedAuthservId, authenticationBlock, authenticationFailed };
+export { parseAuthenticationResults, isTrustedAuthservId, authenticationBlock, authenticationFailed };

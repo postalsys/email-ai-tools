@@ -1,10 +1,44 @@
-'use strict';
+import { getDomain, parse as parseDomain } from 'tldts';
+import url from 'node:url';
+import { authenticationFailed } from './authentication.js';
+import type { AuthenticationBlock } from './authentication.js';
+import { INVISIBLE_CHARS, MAX_LINK_TEXT_LENGTH } from './visible-text.js';
+import type { MessageLink } from './visible-text.js';
+import { truncate } from './token-estimate.js';
 
-const { getDomain, parse: parseDomain } = require('tldts');
-const { domainToUnicode, domainToASCII } = require('url');
-const { authenticationFailed } = require('./authentication');
-const { INVISIBLE_CHARS, MAX_LINK_TEXT_LENGTH } = require('./visible-text');
-const { truncate } = require('./token-estimate');
+/** A fact established by a check run in code */
+export interface Signal {
+    code: string;
+    detail: string;
+    /** The least risk score a message carrying the signal gets, 0 for one that is only reported */
+    floor: number;
+}
+
+/** What collectSignals() checks */
+export interface SignalInput {
+    /** Sender as "Name <address>" */
+    from?: string | null | undefined;
+    /** Reply-To as "Name <address>" */
+    replyTo?: string | null | undefined;
+    /** Attachments with filename and contentType */
+    attachments?: Array<{ filename?: unknown; contentType?: unknown } | null | undefined> | null | undefined;
+    /** Every link of the HTML, from visibleHtml() */
+    links?: MessageLink[] | null | undefined;
+    /** Text body, read for links when there is no HTML */
+    text?: string | null | undefined;
+    /** As returned by authenticationBlock() */
+    authentication?: AuthenticationBlock | null | undefined;
+    /** Hidden elements removed from the HTML */
+    hiddenElements?: number | undefined;
+    /** Invisible characters removed */
+    invisibleCharacters?: number | undefined;
+}
+
+/** The part of the model's answer the signals apply to */
+export interface RiskResult {
+    riskAssessment?: { risk?: number; assessment?: string; signals?: string[]; [key: string]: unknown } | undefined;
+    [key: string]: unknown;
+}
 
 // Checks run in code on the message before the model sees it. Each one is a fact the email
 // cannot argue with: a model can be talked into a low score by text inside the message, code
@@ -65,7 +99,7 @@ const EXECUTABLE_TYPES = new Set([
 // Files a mail client or browser runs code from when opened
 const SCRIPTABLE_EXTENSIONS = new Set(['html', 'htm', 'shtml', 'xhtml', 'xht', 'svg', 'one']);
 
-const FLOORS = {
+const FLOORS: Record<string, number> = {
     executableAttachment: 4,
     lookalikeDomain: 4,
     linkTargetMismatch: 3,
@@ -77,7 +111,7 @@ const FLOORS = {
 
 // A detail is attacker-written text that lands in the assessment and in front of the model, so
 // it is cleaned of anything that could reorder or hide it, cut short and quoted
-// eslint-disable-next-line no-control-regex
+
 const CONTROL_CHARS = /[\u0000-\u001f\u007f-\u009f]/g;
 const DETAIL_LENGTH = 80;
 
@@ -90,7 +124,7 @@ const LATIN = /\p{Script=Latin}/u;
 // a letter that is not Latin: the negation of (non-letters and Latin letters)
 const NON_LATIN_LETTER = /[^\P{L}\p{Script=Latin}]/u;
 
-function cleanText(value) {
+function cleanText(value: unknown): string {
     return String(value ?? '')
         .normalize('NFKC')
         .replace(CONTROL_CHARS, '')
@@ -99,24 +133,24 @@ function cleanText(value) {
         .trim();
 }
 
-function quoted(value) {
+function quoted(value: unknown): string {
     const text = cleanText(value);
     return `"${text.length > DETAIL_LENGTH ? `${text.substring(0, DETAIL_LENGTH)}...` : text}"`;
 }
 
-function registrableDomain(host) {
-    host = domainToASCII(String(host ?? '').toLowerCase()) || String(host ?? '').toLowerCase();
+function registrableDomain(input: unknown): string | null {
+    const host = url.domainToASCII(String(input ?? '').toLowerCase()) || String(input ?? '').toLowerCase();
     return getDomain(host) || host || null;
 }
 
-function addressDomain(address) {
+function addressDomain(address: unknown): string | null {
     const match = /@([^\s>@]+)\s*>?\s*$/.exec(String(address ?? ''));
     return match ? registrableDomain(match[1]) : null;
 }
 
 // "Name <address>" or a bare address, as the From and Reply-To values are formatted
-function splitAddress(value) {
-    value = String(value ?? '').trim();
+function splitAddress(input: unknown): { name: string; address: string } {
+    const value = String(input ?? '').trim();
     const match = /^(.*?)\s*<([^<>]+)>\s*$/.exec(value);
     if (match) {
         return { name: match[1].replace(/^"|"$/g, '').trim(), address: match[2].trim() };
@@ -127,8 +161,9 @@ function splitAddress(value) {
 // A label is a lookalike when it mixes Latin letters with letters of another script: "paypal"
 // spelled with a Cyrillic "a" reads as the brand and resolves elsewhere. A label written entirely in
 // another script is a normal internationalised name
-function isLookalikeHost(host) {
-    return domainToUnicode(String(host ?? ''))
+function isLookalikeHost(host: unknown): boolean {
+    return url
+        .domainToUnicode(String(host ?? ''))
         .split('.')
         .some(label => LATIN.test(label) && NON_LATIN_LETTER.test(label));
 }
@@ -136,21 +171,21 @@ function isLookalikeHost(host) {
 // The host a browser would connect to: tabs and newlines are dropped, leading and trailing
 // controls and spaces stripped, a scheme-relative or backslashed form resolved, the host
 // lower-cased, percent-decoded and punycoded, all by the URL parser. Only http and https count
-function linkHost(href) {
-    href = String(href ?? '')
+function linkHost(input: unknown): string | null {
+    const href = String(input ?? '')
         .replace(/[\t\n\r]/g, '')
-        // eslint-disable-next-line no-control-regex
+
         .replace(/^[\u0000- ]+|[\u0000- ]+$/g, '');
-    let url;
+    let parsed: URL;
     try {
-        url = new URL(href, 'https://base.invalid/');
+        parsed = new URL(href, 'https://base.invalid/');
     } catch {
         return null;
     }
-    if ((url.protocol !== 'http:' && url.protocol !== 'https:') || url.hostname === 'base.invalid') {
+    if ((parsed.protocol !== 'http:' && parsed.protocol !== 'https:') || parsed.hostname === 'base.invalid') {
         return null;
     }
-    return url.hostname;
+    return parsed.hostname;
 }
 
 // Anchor text that names a host or URL itself, which a reader takes as the destination.
@@ -160,14 +195,14 @@ function linkHost(href) {
 // at most 64 octets (RFC 5321), and an unbounded run that backtracks for its "@" from every
 // opening bracket in the text is quadratic
 const HOST_START = /(?:^|[\s(<"'[])(?:https?:\/\/)?/.source;
-const HOST = /((?:[\p{L}\p{N}-]+\.)+\p{L}{2,})/.source;
+const HOST = /((?:[\p{L}\p{N}-]+\.)+\p{L}{2,})/u.source;
 const HOST_AS_USERINFO = new RegExp(`${HOST_START}${HOST}@`, 'iu');
 const HOST_IN_TEXT = new RegExp(`${HOST_START}(?:[^\\s/@]{1,64}@)?${HOST}(?=$|[\\s/?#:,.;!)\\]>"'])`, 'iu');
 
-function hostInText(text) {
+function hostInText(input: unknown): string | null {
     // cut before anything runs on it: the links of visibleHtml() are cut already, a caller's own
     // may not be
-    text = cleanText(truncate(text, MAX_LINK_TEXT_LENGTH));
+    const text = cleanText(truncate(input, MAX_LINK_TEXT_LENGTH));
     const userinfo = HOST_AS_USERINFO.exec(text);
     if (userinfo && parseDomain(userinfo[1]).isIcann) {
         return userinfo[1].toLowerCase();
@@ -176,11 +211,11 @@ function hostInText(text) {
     return match ? match[1].toLowerCase() : null;
 }
 
-function urlsInText(text) {
+function urlsInText(text: unknown): MessageLink[] {
     return (String(text ?? '').match(/https?:\/\/[^\s<>"')\]]+/gi) || []).map(url => ({ href: url, text: '' }));
 }
 
-function normalizedFilename(filename) {
+function normalizedFilename(filename: unknown): string {
     let name = cleanText(filename);
     try {
         name = decodeURIComponent(name);
@@ -191,29 +226,18 @@ function normalizedFilename(filename) {
     return name.replace(/[.\s]+$/, '');
 }
 
-function extensionOf(name) {
+function extensionOf(name: string): string {
     const match = /\.([a-z0-9-]+)$/i.exec(name);
     return match ? match[1].toLowerCase() : '';
 }
 
 /**
  * Runs the checks on a message
- *
- * @param {Object} message
- * @param {string} [message.from] - Sender as "Name <address>"
- * @param {string} [message.replyTo] - Reply-To as "Name <address>"
- * @param {Array} [message.attachments] - Attachments with filename and contentType
- * @param {Array} [message.links] - Every link of the HTML, with href and text, from visibleHtml()
- * @param {string} [message.text] - Text body, read for links when there is no HTML
- * @param {Object|null} [message.authentication] - As returned by authenticationBlock()
- * @param {number} [message.hiddenElements] - Hidden elements removed from the HTML
- * @param {number} [message.invisibleCharacters] - Invisible characters removed
- * @returns {Array<{code: string, detail: string, floor: number}>}
  */
-function collectSignals(message) {
-    const signals = [];
-    const seen = new Set();
-    const add = (code, detail) => {
+function collectSignals(message: SignalInput): Signal[] {
+    const signals: Signal[] = [];
+    const seen = new Set<string>();
+    const add = (code: string, detail: string): void => {
         const key = `${code}\n${detail}`;
         if (!seen.has(key)) {
             seen.add(key);
@@ -221,7 +245,7 @@ function collectSignals(message) {
         }
     };
 
-    for (const attachment of [].concat(message.attachments || [])) {
+    for (const attachment of ([] as NonNullable<SignalInput['attachments']>).concat(message.attachments || [])) {
         const filename = normalizedFilename(attachment && attachment.filename);
         const extension = extensionOf(filename);
         const contentType = cleanText(attachment && attachment.contentType).toLowerCase();
@@ -264,14 +288,14 @@ function collectSignals(message) {
     }
 
     if (authenticationFailed(message.authentication)) {
-        const auth = message.authentication;
-        add('authenticationFailed', ['spf', 'dkim', 'dmarc'].map(method => `${method}=${auth[method] || 'none'}`).join(' '));
+        const auth = message.authentication!;
+        add('authenticationFailed', (['spf', 'dkim', 'dmarc'] as const).map(method => `${method}=${auth[method] || 'none'}`).join(' '));
     }
 
-    if (message.hiddenElements > 0) {
+    if ((message.hiddenElements ?? 0) > 0) {
         add('hiddenContent', `${message.hiddenElements} hidden element(s) with text were left out`);
     }
-    if (message.invisibleCharacters > 0) {
+    if ((message.invisibleCharacters ?? 0) > 0) {
         add('invisibleCharacters', `${message.invisibleCharacters} invisible character(s) were left out`);
     }
 
@@ -281,10 +305,9 @@ function collectSignals(message) {
 /**
  * The signals the model gets to see: the ones that carry a floor, without it
  *
- * @param {Array} signals - As returned by collectSignals()
- * @returns {Array<{code: string, detail: string}>}
+ * @param signals - As returned by collectSignals()
  */
-function modelSignals(signals) {
+function modelSignals(signals: Signal[]): Array<{ code: string; detail: string }> {
     return signals
         .filter(signal => signal.floor > 0)
         .slice(0, MAX_LISTED_SIGNALS)
@@ -298,19 +321,19 @@ function modelSignals(signals) {
  * writes the rest of the assessment, and text in the message can talk it into writing this
  * field too, as facts no check established
  *
- * @param {Object} result - Normalized model output, changed in place
- * @param {Array} signals - As returned by collectSignals()
- * @returns {Object} The same result
+ * @param result - Normalized model output, changed in place
+ * @param signals - As returned by collectSignals()
+ * @returns The same result
  */
-function applySignals(result, signals) {
+function applySignals<T extends RiskResult>(result: T, signals: Signal[]): T {
     const scored = signals.filter(signal => signal.floor > 0);
     const hasAssessment = !!result.riskAssessment && typeof result.riskAssessment === 'object';
     if (!scored.length && !hasAssessment) {
         return result;
     }
 
-    const riskAssessment = hasAssessment ? result.riskAssessment : {};
-    const risk = Number.isFinite(riskAssessment.risk) ? riskAssessment.risk : 0;
+    const riskAssessment: NonNullable<RiskResult['riskAssessment']> = hasAssessment ? result.riskAssessment! : {};
+    const risk = Number.isFinite(riskAssessment.risk) ? riskAssessment.risk! : 0;
     const floor = scored.length ? Math.max(...scored.map(signal => signal.floor)) : 0;
 
     if (floor > risk) {
@@ -327,4 +350,4 @@ function applySignals(result, signals) {
     return result;
 }
 
-module.exports = { collectSignals, modelSignals, applySignals, isLookalikeHost, splitAddress };
+export { collectSignals, modelSignals, applySignals, isLookalikeHost, splitAddress };

@@ -4,7 +4,21 @@ module.exports = {
     upgrade: true,
     // undici 8.x requires Node 22.19+ and crashes at require() on Node 20; stay on
     // the latest 7.x (CommonJS, Node 20+) so security patches still flow through.
-    target: name => (name === 'undici' ? 'minor' : 'latest'),
+    target: name => {
+        if (name === 'undici') {
+            return 'minor';
+        }
+        // @types/node stays on the 20.x line so the compiler rejects APIs that do
+        // not exist on Node 20, the oldest supported version
+        if (name === '@types/node') {
+            return 'minor';
+        }
+        // typescript-eslint declares a peer range that excludes TypeScript 7
+        if (name === 'typescript') {
+            return 'minor';
+        }
+        return 'latest';
+    },
     reject: [
         // Block package upgrades that moved to ESM
         'nanoid',

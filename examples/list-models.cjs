@@ -1,6 +1,6 @@
 'use strict';
 
-const { listModels } = require('../lib/list-models');
+const { listModels } = require('@postalsys/email-ai-tools/lib/list-models');
 const util = require('util');
 
 async function main() {

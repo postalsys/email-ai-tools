@@ -2,16 +2,67 @@
     "name": "@postalsys/email-ai-tools",
     "version": "2.2.8",
     "description": "Summarize and risk-score email messages with an OpenAI-compatible chat model",
-    "main": "index.js",
+    "type": "module",
+    "main": "./dist/cjs/index.js",
+    "types": "./dist/cjs/index.d.ts",
+    "typesVersions": {
+        "*": {
+            "lib/*": [
+                "dist/cjs/lib/*"
+            ],
+            "index": [
+                "dist/cjs/index.d.ts"
+            ],
+            "index.js": [
+                "dist/cjs/index.d.ts"
+            ]
+        }
+    },
+    "exports": {
+        ".": {
+            "import": "./dist/esm/index.js",
+            "require": "./dist/cjs/index.js"
+        },
+        "./index": {
+            "import": "./dist/esm/index.js",
+            "require": "./dist/cjs/index.js"
+        },
+        "./index.js": {
+            "import": "./dist/esm/index.js",
+            "require": "./dist/cjs/index.js"
+        },
+        "./lib/*.js": {
+            "import": "./dist/esm/lib/*.js",
+            "require": "./dist/cjs/lib/*.js"
+        },
+        "./lib/*": {
+            "import": "./dist/esm/lib/*.js",
+            "require": "./dist/cjs/lib/*.js"
+        },
+        "./package.json": "./package.json"
+    },
+    "files": [
+        "dist",
+        "README.md",
+        "LICENSE",
+        "CHANGELOG.md",
+        "SECURITY.md"
+    ],
     "scripts": {
-        "test": "node --test test/*.test.js",
-        "test:coverage": "c8 npm test",
-        "lint": "eslint .",
+        "build": "node scripts/build.js",
+        "typecheck": "node scripts/build.js --generate-only && tsc -p tsconfig.json",
+        "pretest": "npm run build",
+        "test": "node --test test/*.test.cjs test/package/*.test.cjs test/package/*.test.mjs",
+        "pretest:coverage": "npm run build",
+        "test:coverage": "c8 node --test test/*.test.cjs test/package/*.test.cjs test/package/*.test.mjs",
+        "pretest:cjs": "npm run build",
+        "test:cjs": "NODE_OPTIONS=--no-experimental-require-module node --test test/*.test.cjs test/package/*.test.cjs",
+        "lint": "npm run typecheck && eslint .",
         "lint:fix": "eslint . --fix",
         "format": "prettier --write .",
         "format:check": "prettier --check .",
-        "update": "rm -rf node_modules package-lock.json && ncu -u && npm install",
-        "test:cjs": "NODE_OPTIONS=--no-experimental-require-module npm test"
+        "prepare": "npm run build",
+        "update": "rm -rf node_modules package-lock.json && ncu -u && npm install"
     },
     "repository": {
         "type": "git",
@@ -25,13 +76,15 @@
     },
     "homepage": "https://github.com/postalsys/email-ai-tools#readme",
     "devDependencies": {
-        "@eslint/js": "10.0.1",
+        "@types/node": "20.19.43",
         "c8": "12.0.0",
         "eslint": "10.13.0",
         "eslint-config-prettier": "10.1.8",
         "globals": "17.13.0",
         "mailparser": "3.9.47",
-        "prettier": "3.9.10"
+        "prettier": "3.9.10",
+        "typescript": "6.0.3",
+        "typescript-eslint": "8.71.2"
     },
     "dependencies": {
         "@postalsys/email-text-tools": "2.5.0",

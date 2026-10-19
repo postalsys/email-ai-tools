@@ -1,5 +1,3 @@
-'use strict';
-
 const OPENAI_API_BASE_URL = 'https://api.openai.com';
 
 /**
@@ -14,11 +12,11 @@ const OPENAI_API_BASE_URL = 'https://api.openai.com';
  * and "https://api.example.com/v1" style base URLs resolve to the same request
  * URL.
  *
- * @param {string} [baseApiUrl] - Base API URL (default: OpenAI API)
- * @param {string} [path] - Request path, e.g. "/v1/chat/completions"
- * @returns {string} Absolute request URL
+ * @param baseApiUrl - Base API URL (default: OpenAI API)
+ * @param path - Request path, e.g. "/v1/chat/completions"
+ * @returns Absolute request URL
  */
-function getApiUrl(baseApiUrl, path) {
+function getApiUrl(baseApiUrl?: string | null, path?: string | null): string {
     let url = new URL(baseApiUrl || OPENAI_API_BASE_URL);
 
     // The API is authenticated with the token, never with the URL. fetch() refuses a URL that
@@ -39,4 +37,4 @@ function getApiUrl(baseApiUrl, path) {
     return url.href;
 }
 
-module.exports = { getApiUrl, OPENAI_API_BASE_URL };
+export { getApiUrl, OPENAI_API_BASE_URL };

@@ -2,7 +2,7 @@
 
 const { describe, it, before, after, beforeEach } = require('node:test');
 const assert = require('node:assert/strict');
-const { createMockServer, chatResponse, errorResponse } = require('./helpers/mock-server');
+const { createMockServer, chatResponse, errorResponse } = require('./helpers/mock-server.cjs');
 const {
     generateSummary,
     isReasoningModel,
@@ -10,7 +10,7 @@ const {
     DEFAULT_MODEL,
     DEFAULT_SYSTEM_PROMPT,
     DEFAULT_INSTRUCTIONS
-} = require('../lib/generate-summary');
+} = require('@postalsys/email-ai-tools/lib/generate-summary');
 
 describe('generateSummary', () => {
     let mock;

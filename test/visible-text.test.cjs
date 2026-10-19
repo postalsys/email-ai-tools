@@ -2,7 +2,7 @@
 
 const { describe, it } = require('node:test');
 const assert = require('node:assert/strict');
-const { visibleHtml, visibleText, MAX_HTML_LENGTH, MAX_LINK_TEXT_LENGTH } = require('../lib/visible-text');
+const { visibleHtml, visibleText, MAX_HTML_LENGTH, MAX_LINK_TEXT_LENGTH } = require('@postalsys/email-ai-tools/lib/visible-text');
 const { htmlToText } = require('@postalsys/email-text-tools');
 
 function timeIt(fn) {

@@ -2,7 +2,7 @@
 
 const { describe, it } = require('node:test');
 const assert = require('node:assert/strict');
-const lib = require('../index');
+const lib = require('@postalsys/email-ai-tools/index');
 
 describe('index exports', () => {
     it('exports generateSummary as a function', () => {

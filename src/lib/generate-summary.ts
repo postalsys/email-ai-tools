@@ -1,13 +1,118 @@
-'use strict';
+import libmime from 'libmime';
+import { htmlToText } from '@postalsys/email-text-tools';
+import type { Dispatcher } from 'undici';
+import { apiRequest } from './api-request.js';
+import type { ApiRequestError, ApiRequestOptions } from './api-request.js';
+import { estimateTokens, fitPrompt, truncate, DEFAULT_MAX_ALLOWED_TOKENS } from './token-estimate.js';
+import { getApiUrl, OPENAI_API_BASE_URL } from './get-api-url.js';
+import { visibleHtml, visibleText } from './visible-text.js';
+import { authenticationBlock } from './authentication.js';
+import type { AuthenticationBlock, AuthenticationTrust } from './authentication.js';
+import { collectSignals, modelSignals, applySignals } from './signals.js';
+import type { Signal } from './signals.js';
 
-const libmime = require('libmime');
-const { htmlToText } = require('@postalsys/email-text-tools');
-const { apiRequest } = require('./api-request');
-const { estimateTokens, fitPrompt, truncate, DEFAULT_MAX_ALLOWED_TOKENS } = require('./token-estimate');
-const { getApiUrl, OPENAI_API_BASE_URL } = require('./get-api-url');
-const { visibleHtml, visibleText } = require('./visible-text');
-const { authenticationBlock } = require('./authentication');
-const { collectSignals, modelSignals, applySignals } = require('./signals');
+/** An address as {name, address} */
+export interface SummaryAddress {
+    name?: string | null | undefined;
+    address?: string | null | undefined;
+}
+
+/** The email message to analyze */
+export interface SummaryMessage {
+    /** Header objects; a value may be a string or a list of strings, encoded words are decoded */
+    headers?: Array<{ key?: string | null | undefined; value?: unknown } | null | undefined> | null | undefined;
+    /** Decoded subject, used over the subject header */
+    subject?: string | null | undefined;
+    /** Sender, as a string or as {name, address}, used over the from header */
+    from?: string | SummaryAddress | null | undefined;
+    /** Message date, used over the date header */
+    date?: string | Date | null | undefined;
+    /** Attachment objects with {filename, contentType} */
+    attachments?:
+        Array<{ filename?: string | null | undefined; contentType?: string | null | undefined; [key: string]: unknown } | null | undefined> | null | undefined;
+    /** Plain text content */
+    text?: string | null | undefined;
+    /** HTML content, converted to text when it is the fuller version */
+    html?: string | null | undefined;
+}
+
+export interface GenerateSummaryOptions {
+    /** Custom API base URL (default: OpenAI API) */
+    baseApiUrl?: string | null | undefined;
+    /** Model to use (default: DEFAULT_MODEL) */
+    gptModel?: string | null | undefined;
+    /** Replaces the role and trust rules at the top of the system message */
+    systemPrompt?: string | null | undefined;
+    /** Replaces the analysis instructions, including the output properties */
+    instructions?: string | null | undefined;
+    /** Maximum estimated tokens for the prompt (default 30000, a character-based estimate that errs high) */
+    maxTokens?: number | null | undefined;
+    /** Sampling temperature (0-2), not sent to a model that is reasoning */
+    temperature?: number | string | null | undefined;
+    /** Nucleus sampling parameter (0-1), not sent to a model that is reasoning */
+    topP?: number | string | null | undefined;
+    /** Reasoning effort for reasoning models ("low" when unset for one) */
+    reasoningEffort?: string | null | undefined;
+    /** Ask for a JSON object response (default true), dropped when the model refuses it */
+    jsonMode?: boolean | undefined;
+    /** End-user identifier passed to the API */
+    user?: string | null | undefined;
+    /** Additional headers to include (merged with defaults) */
+    allowedHeaders?: string[] | string | null | undefined;
+    /** Names of the servers whose Authentication-Results header counts as verified, hosts under them included */
+    trustedAuthservIds?: string[] | string | null | undefined;
+    /** Whether an Authentication-Results header without an authserv-id counts as verified (Microsoft writes none) */
+    acceptUnnamedAuthentication?: boolean | undefined;
+    /** Log requests to stderr and include the prompt text in the usage */
+    verbose?: boolean | undefined;
+    /** undici Dispatcher (for example a ProxyAgent) the API request is sent through */
+    dispatcher?: Dispatcher | undefined;
+    /** Aborts the API request and any rate limit retry wait */
+    signal?: AbortSignal | undefined;
+}
+
+/** What the model returned, with the documented properties normalized */
+export interface SummaryResult {
+    summary?: string;
+    sentiment?: 'positive' | 'neutral' | 'negative';
+    shouldReply?: boolean;
+    riskAssessment?: { risk?: number; assessment?: string; signals?: string[]; [key: string]: unknown };
+    events?: Array<Record<string, string | number | boolean>>;
+    actions?: Array<Record<string, string | number | boolean>>;
+    [key: string]: unknown;
+}
+
+export interface SummaryUsage {
+    id: string | null;
+    model: string;
+    servedModel: string | null;
+    tokens: number | null;
+    promptTokens: number | null;
+    completionTokens: number | null;
+    time: number;
+    charactersRemoved: number;
+    /** The prompt text, with `verbose` */
+    text?: string;
+}
+
+/** An error from generateSummary(), carrying the signals found before it */
+export interface SummaryError extends ApiRequestError {
+    signals?: Signal[];
+    textContent?: string;
+    finishReason?: string;
+}
+
+// The object the model is asked to analyze
+interface ModelInput {
+    subject: string;
+    from: string;
+    date: string;
+    headers: Record<string, string>;
+    authentication?: AuthenticationBlock;
+    signals?: Array<{ code: string; detail: string }>;
+    attachments?: Array<{ filename?: string; contentType?: string }>;
+    [key: string]: unknown;
+}
 
 const OPENAI_API_URL_CHAT = '/v1/chat/completions';
 
@@ -77,7 +182,7 @@ const MAX_LIST_LENGTH = 50;
 // next call does not pay for it again. OpenAI's reasoning models reject the sampling parameters,
 // its chat models reject reasoning_effort, and a compatible server may know none of them
 const OPTIONAL_PARAMS = ['response_format', 'reasoning_effort', 'temperature', 'top_p'];
-const unsupportedParams = new Map();
+const unsupportedParams = new Map<string, Set<string>>();
 
 const DEFAULT_SYSTEM_PROMPT = `
 You are an email triage assistant. You analyze one incoming email at a time and report what you find as a JSON object for an automated pipeline. No person reads your output directly.
@@ -126,7 +231,7 @@ The user message is a JSON object describing the email:
 Respond with one JSON object and nothing else: no explanation, no markdown fence.
 `.trim();
 
-function systemContent(systemPrompt, instructions) {
+function systemContent(systemPrompt: string, instructions: string): string {
     return `${systemPrompt}\n\n${instructions}\n\n${INPUT_FORMAT_PROMPT}`;
 }
 
@@ -141,27 +246,26 @@ const DEFAULT_SYSTEM_TOKENS = estimateTokens(DEFAULT_SYSTEM_CONTENT);
  * not recognize (an Azure deployment, a prefixed name) is still handled: the backend's refusal
  * of a parameter is honored either way, this only saves the request that learns it
  *
- * @param {string} model - Model name as sent to the API
- * @returns {boolean}
+ * @param input - Model name as sent to the API
  */
-function isReasoningModel(model) {
-    model = asText(model).trim();
+function isReasoningModel(input: unknown): boolean {
+    const model = asText(input).trim();
     return /^(?:gpt-(?:[5-9]|\d{2,})(?:[.-]|$)|gpt-oss|o\d(?:-|$))/i.test(model) && !/chat/i.test(model);
 }
 
-function asText(value) {
+function asText(value: unknown): string {
     return String(value ?? '');
 }
 
-function headerText(value) {
+function headerText(value: unknown): string {
     return truncate(libmime.decodeWords(asText(value)).replace(/\s+/g, ' ').trim(), MAX_HEADER_LENGTH);
 }
 
-function headerKey(name) {
+function headerKey(name: unknown): string {
     return asText(name).trim().toLowerCase();
 }
 
-function formatAddress(from) {
+function formatAddress(from: SummaryMessage['from']): string {
     if (!from || typeof from === 'string') {
         return headerText(from);
     }
@@ -170,22 +274,22 @@ function formatAddress(from) {
     return name && address ? `${name} <${address}>` : name || address;
 }
 
-function formatDate(date) {
+function formatDate(date: SummaryMessage['date']): string {
     if (date instanceof Date) {
         return isNaN(date.getTime()) ? '' : date.toISOString();
     }
     return headerText(date);
 }
 
-function optionalNumber(value) {
-    return value === undefined || value === null || value === '' || isNaN(value) ? undefined : Number(value);
+function optionalNumber(value: unknown): number | undefined {
+    return value === undefined || value === null || value === '' || isNaN(value as number) ? undefined : Number(value);
 }
 
 // The name and type of an attachment as the model sees them, each cut, neither present when
 // empty
-function attachmentEntry(attachment) {
-    const entry = {};
-    for (const key of ['filename', 'contentType']) {
+function attachmentEntry(attachment: NonNullable<SummaryMessage['attachments']>[number]): { filename?: string; contentType?: string } {
+    const entry: { filename?: string; contentType?: string } = {};
+    for (const key of ['filename', 'contentType'] as const) {
         const value = truncate(attachment && attachment[key], MAX_ATTACHMENT_TEXT_LENGTH);
         if (value) {
             entry[key] = value;
@@ -199,13 +303,13 @@ function attachmentEntry(attachment) {
  * RFC 2047 form, and the subject, sender and date get their own properties, which a value the
  * caller supplies takes precedence for
  *
- * @param {Object} message - Message as given to generateSummary()
- * @param {Set<string>} allowedHeaders - Lower-case names of the headers to pass on
- * @param {Object} trust - Which authserv-ids count, normalized
- * @returns {Object} Input object without its text
+ * @param message - Message as given to generateSummary()
+ * @param allowedHeaders - Lower-case names of the headers to pass on
+ * @param trust - Which authserv-ids count, normalized
+ * @returns Input object without its text
  */
-function buildInput(message, allowedHeaders, trust) {
-    const input = {
+function buildInput(message: SummaryMessage, allowedHeaders: Set<string>, trust: AuthenticationTrust): ModelInput {
+    const input: ModelInput = {
         subject: headerText(message.subject),
         from: truncate(formatAddress(message.from), MAX_HEADER_LENGTH),
         date: formatDate(message.date),
@@ -214,14 +318,14 @@ function buildInput(message, allowedHeaders, trust) {
 
     // Repeated headers are joined as they come, and no further once the joined value has reached
     // the cap: a header repeated a thousand times is not worth joining before it is cut
-    const collected = new Map();
-    for (const header of [].concat(message.headers || [])) {
+    const collected = new Map<string, string>();
+    for (const header of ([] as NonNullable<SummaryMessage['headers']>).concat(message.headers || [])) {
         const key = headerKey(header && header.key);
         if (!key || !allowedHeaders.has(key) || (LIFTED_HEADERS.has(key) && input[key])) {
             continue;
         }
 
-        for (const value of [].concat(header.value)) {
+        for (const value of ([] as unknown[]).concat(header!.value)) {
             const text = headerText(value);
             const joined = collected.get(key);
             if (!text || (joined && (FIRST_ONLY_HEADERS.has(key) || joined.length >= MAX_HEADER_LENGTH))) {
@@ -247,7 +351,7 @@ function buildInput(message, allowedHeaders, trust) {
         }
     }
 
-    input.attachments = []
+    input.attachments = ([] as NonNullable<SummaryMessage['attachments']>)
         .concat(message.attachments || [])
         .map(attachmentEntry)
         .filter(entry => entry.filename || entry.contentType)
@@ -258,7 +362,7 @@ function buildInput(message, allowedHeaders, trust) {
 
 // The object between the first "{" and the last "}", which also strips a markdown fence or a
 // remark the model put around it
-function parseJsonObject(output) {
+function parseJsonObject(output: string): Record<string, any> {
     const objStart = output.indexOf('{');
     const objEnd = output.lastIndexOf('}');
 
@@ -269,7 +373,7 @@ function parseJsonObject(output) {
     return value;
 }
 
-function walkAndRemoveNull(branch) {
+function walkAndRemoveNull(branch: any): void {
     if (typeof branch !== 'object' || !branch) {
         return;
     }
@@ -287,7 +391,7 @@ function walkAndRemoveNull(branch) {
     }
 }
 
-function setOrDelete(obj, key, value) {
+function setOrDelete(obj: Record<string, unknown>, key: string, value: unknown): void {
     if (value === undefined || value === null || value === '') {
         delete obj[key];
     } else {
@@ -295,13 +399,13 @@ function setOrDelete(obj, key, value) {
     }
 }
 
-function freeText(value) {
+function freeText(value: unknown): string {
     return typeof value === 'string' ? truncate(value.trim(), MAX_TEXT_LENGTH) : '';
 }
 
 // An event or an action. Its documented properties are all strings, a custom instruction set
 // may add a number or a flag, and nothing nested is what a consumer expects to find in one
-function normalizeEntry(entry) {
+function normalizeEntry(entry: Record<string, unknown>): Record<string, unknown> {
     for (const key of Object.keys(entry)) {
         const value = entry[key];
         if (typeof value === 'string') {
@@ -313,7 +417,7 @@ function normalizeEntry(entry) {
     return entry;
 }
 
-function toBoolean(value) {
+function toBoolean(value: unknown): boolean | null {
     if (typeof value === 'boolean') {
         return value;
     }
@@ -332,10 +436,10 @@ function toBoolean(value) {
  * a value that cannot be made to fit. Properties a custom instruction set adds are passed on as
  * they came, less null and empty values
  *
- * @param {Object} values - Parsed model output
- * @returns {Object} The same object, normalized in place
+ * @param values - Parsed model output
+ * @returns The same object, normalized in place
  */
-function normalizeResult(values) {
+function normalizeResult(values: Record<string, any>): SummaryResult {
     walkAndRemoveNull(values);
 
     if ('sentiment' in values) {
@@ -370,7 +474,7 @@ function normalizeResult(values) {
 
     for (const key of ['events', 'actions']) {
         if (key in values) {
-            const list = []
+            const list = ([] as any[])
                 .concat(values[key])
                 .filter(entry => entry && typeof entry === 'object' && !Array.isArray(entry))
                 .slice(0, MAX_LIST_LENGTH)
@@ -387,9 +491,9 @@ function normalizeResult(values) {
  * Sends the chat request, dropping every optional parameter the backend refuses by name. The
  * time reported covers all attempts
  */
-async function requestChat(url, payload, requestOpts) {
+async function requestChat(url: string, payload: Record<string, any>, requestOpts: Omit<ApiRequestOptions, 'payload'>): Promise<{ data: any; time: number }> {
     const cacheKey = `${url}|${payload.model}`;
-    const dropped = unsupportedParams.get(cacheKey) || new Set();
+    const dropped = unsupportedParams.get(cacheKey) || new Set<string>();
     for (const name of dropped) {
         delete payload[name];
     }
@@ -399,7 +503,8 @@ async function requestChat(url, payload, requestOpts) {
         try {
             const { data } = await apiRequest(url, Object.assign({ payload }, requestOpts));
             return { data, time: Date.now() - startTime };
-        } catch (err) {
+        } catch (caught) {
+            const err = caught as ApiRequestError;
             // the structured param field when the API sends one, the message text otherwise
             const refused =
                 err.statusCode === 400
@@ -426,7 +531,7 @@ async function requestChat(url, payload, requestOpts) {
 /**
  * Forgets which parameters a backend refused. Meant for tests
  */
-function resetParameterCache() {
+function resetParameterCache(): void {
     unsupportedParams.clear();
 }
 
@@ -434,42 +539,24 @@ function resetParameterCache() {
  * Analyzes an email message with a chat model and returns what the model reported, untouched
  * except for normalization of the documented properties, beside the request usage
  *
- * @param {Object} message - The email message to analyze
- * @param {Array} [message.headers] - Header objects with {key, value}; value may be a string or a list of strings, encoded words are decoded
- * @param {string} [message.subject] - Decoded subject, used over the subject header
- * @param {string|Object} [message.from] - Sender, as a string or as {name, address}, used over the from header
- * @param {string|Date} [message.date] - Message date, used over the date header
- * @param {Array} [message.attachments] - Attachment objects with {filename, contentType}
- * @param {string} [message.text] - Plain text content
- * @param {string} [message.html] - HTML content, converted to text when it is the fuller version
- * @param {string} apiToken - API authentication token
- * @param {Object} [opts] - Configuration options
- * @param {string} [opts.baseApiUrl] - Custom API base URL (default: OpenAI API)
- * @param {string} [opts.gptModel] - Model to use (default: DEFAULT_MODEL)
- * @param {string} [opts.systemPrompt] - Replaces the role and trust rules at the top of the system message
- * @param {string} [opts.instructions] - Replaces the analysis instructions, including the output properties
- * @param {number} [opts.maxTokens=30000] - Maximum estimated tokens for the prompt (a character-based estimate that errs high)
- * @param {number} [opts.temperature] - Sampling temperature (0-2), not sent to a model that is reasoning
- * @param {number} [opts.topP] - Nucleus sampling parameter (0-1), not sent to a model that is reasoning
- * @param {string} [opts.reasoningEffort] - Reasoning effort for reasoning models ("low" when unset for one)
- * @param {boolean} [opts.jsonMode=true] - Ask for a JSON object response, dropped when the model refuses it
- * @param {string} [opts.user] - End-user identifier passed to the API
- * @param {Array<string>} [opts.allowedHeaders] - Additional headers to include (merged with defaults)
- * @param {Array<string>} [opts.trustedAuthservIds] - Names of the servers whose Authentication-Results header counts as verified, hosts under them included
- * @param {boolean} [opts.acceptUnnamedAuthentication] - Whether an Authentication-Results header without an authserv-id counts as verified (Microsoft writes none)
- * @param {boolean} [opts.verbose=false] - Log requests to stderr and include the prompt text in the usage
- * @param {Object} [opts.dispatcher] - undici Dispatcher (for example a ProxyAgent) the API request is sent through
- * @param {AbortSignal} [opts.signal] - Aborts the API request and any rate limit retry wait
+ * @param message - The email message to analyze
+ * @param apiToken - API authentication token
+ * @param opts - Configuration options
  *
- * @returns {Promise<{result: Object, usage: Object, signals: Array}>} The model's JSON object, the request usage and the signals found in code, each with its code, detail and floor
- * @returns {Object} return.result - What the model returned: sentiment, summary, shouldReply, riskAssessment and so on, with the risk score held at the signals' floor and the signal codes listed under riskAssessment.signals
- * @returns {Object} return.usage - Request usage: id, model, servedModel, tokens, promptTokens, completionTokens, time, charactersRemoved
+ * @returns The model's JSON object (`result`: sentiment, summary, shouldReply, riskAssessment and
+ * so on, with the risk score held at the signals' floor and the signal codes listed under
+ * riskAssessment.signals), the request usage and the signals found in code, each with its code,
+ * detail and floor
  *
- * @throws {Error} If the prompt is too long even without any text (code PROMPT_TOO_LONG)
- * @throws {Error} If the API request fails
- * @throws {Error} If the response holds no JSON object
+ * @throws Error if the prompt is too long even without any text (code PROMPT_TOO_LONG)
+ * @throws Error if the API request fails
+ * @throws Error if the response holds no JSON object
  */
-async function generateSummary(message, apiToken, opts) {
+async function generateSummary(
+    message: SummaryMessage | null | undefined,
+    apiToken: string,
+    opts?: GenerateSummaryOptions | null
+): Promise<{ result: SummaryResult; usage: SummaryUsage; signals: Signal[] }> {
     opts = opts || {};
     message = message || {};
 
@@ -486,7 +573,7 @@ async function generateSummary(message, apiToken, opts) {
     const html = message.html ? visibleHtml(message.html) : null;
     let text = asText(message.text);
     let invisibleCharacters;
-    if (html && message.html.length >= text.length) {
+    if (html && message.html!.length >= text.length) {
         text = htmlToText(html.html());
         invisibleCharacters = html.invisibleCharacters;
     } else {
@@ -495,15 +582,15 @@ async function generateSummary(message, apiToken, opts) {
         invisibleCharacters = visible.invisibleCharacters;
     }
 
-    const trust = {
-        trustedAuthservIds: []
+    const trust: AuthenticationTrust = {
+        trustedAuthservIds: ([] as string[])
             .concat(opts.trustedAuthservIds || [])
             .map(name => asText(name).trim().toLowerCase())
             .filter(Boolean),
         acceptUnnamedAuthentication: !!opts.acceptUnnamedAuthentication
     };
 
-    const extraHeaders = []
+    const extraHeaders = ([] as string[])
         .concat(opts.allowedHeaders || [])
         .map(headerKey)
         .filter(Boolean);
@@ -526,11 +613,11 @@ async function generateSummary(message, apiToken, opts) {
         input.signals = shownSignals;
     }
 
-    const userMessage = bodyText => JSON.stringify(Object.assign({}, input, { text: bodyText }));
+    const userMessage = (bodyText: string): string => JSON.stringify(Object.assign({}, input, { text: bodyText }));
 
     // the budget covers both messages
-    let promptText;
-    let charactersRemoved;
+    let promptText: string;
+    let charactersRemoved: number;
     try {
         ({ text: promptText, charactersRemoved } = fitPrompt({
             text,
@@ -539,11 +626,11 @@ async function generateSummary(message, apiToken, opts) {
         }));
     } catch (err) {
         // what the checks found is not lost with the answer
-        err.signals = signals;
+        (err as SummaryError).signals = signals;
         throw err;
     }
 
-    const payload = {
+    const payload: Record<string, any> = {
         model,
         messages: [
             { role: 'system', content: system },
@@ -585,19 +672,19 @@ async function generateSummary(message, apiToken, opts) {
         verbose: opts.verbose
     });
 
-    const choices = ((data && data.choices) || [])
-        .filter(choice => choice && choice.message && choice.message.role === 'assistant' && typeof choice.message.content === 'string')
-        .sort((a, b) => (a.index || 0) - (b.index || 0));
+    const choices: any[] = ((data && data.choices) || [])
+        .filter((choice: any) => choice && choice.message && choice.message.role === 'assistant' && typeof choice.message.content === 'string')
+        .sort((a: any, b: any) => (a.index || 0) - (b.index || 0));
     const output = choices
         .map(choice => choice.message.content)
         .join('')
         .trim();
 
-    let result;
+    let result: SummaryResult;
     try {
         result = normalizeResult(parseJsonObject(output));
     } catch (err) {
-        const error = new Error('Failed to parse output from OpenAI API', { cause: err });
+        const error: SummaryError = new Error('Failed to parse output from OpenAI API', { cause: err });
         error.textContent = output;
         // what the checks found is not lost with the answer
         error.signals = signals;
@@ -609,8 +696,8 @@ async function generateSummary(message, apiToken, opts) {
     applySignals(result, signals);
 
     const usageData = (data && data.usage) || {};
-    const count = value => (Number.isFinite(value) ? value : null);
-    const usage = {
+    const count = (value: unknown): number | null => (Number.isFinite(value) ? (value as number) : null);
+    const usage: SummaryUsage = {
         id: (data && data.id) || null,
         model,
         servedModel: (data && data.model) || null,
@@ -628,7 +715,10 @@ async function generateSummary(message, apiToken, opts) {
     return { result, usage, signals };
 }
 
-module.exports = {
+// a copy: the headers the model gets to see, for a caller that decides what to fetch
+const ALLOWED_HEADERS: readonly string[] = Object.freeze([...DEFAULT_ALLOWED_HEADERS]);
+
+export {
     generateSummary,
     isReasoningModel,
     resetParameterCache,
@@ -638,6 +728,5 @@ module.exports = {
     DEFAULT_SYSTEM_PROMPT,
     DEFAULT_INSTRUCTIONS,
     REASONING_EFFORTS,
-    // a copy: the headers the model gets to see, for a caller that decides what to fetch
-    ALLOWED_HEADERS: Object.freeze([...DEFAULT_ALLOWED_HEADERS])
+    ALLOWED_HEADERS
 };

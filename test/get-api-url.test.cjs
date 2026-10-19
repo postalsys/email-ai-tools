@@ -2,7 +2,7 @@
 
 const { describe, it } = require('node:test');
 const assert = require('node:assert/strict');
-const { getApiUrl, OPENAI_API_BASE_URL } = require('../lib/get-api-url');
+const { getApiUrl, OPENAI_API_BASE_URL } = require('@postalsys/email-ai-tools/lib/get-api-url');
 
 describe('getApiUrl', () => {
     it('defaults to the OpenAI API base URL', () => {
