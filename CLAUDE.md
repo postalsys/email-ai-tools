@@ -11,7 +11,7 @@ which lost their only consumer when EmailEngine removed its Document Store.
 
 It is published to npm and consumed by other Postal Systems projects - most
 notably EmailEngine (`../emailengine`), where it ships inside a standalone binary
-built with `@yao-pkg/pkg`. See **Packaging Compatibility** below; it constrains
+built with `@yao-pkg/pkg`. See **Platform constraints** below; it constrains
 which dependencies this library may use.
 
 ## Project Structure
@@ -69,6 +69,7 @@ which dependencies this library may use.
 
 ```
 npm test                # Run the test suite (node --test test/*.test.js)
+npm run test:cjs        # The suite with require(esm) disabled (CommonJS graph guard)
 npm run test:coverage   # Run the suite under c8 coverage
 npm run lint            # eslint .
 npm run lint:fix        # eslint . --fix
@@ -88,7 +89,8 @@ ESLint uses the shared Postal Systems flat config (`eslint.config.js`, kept
 identical across repos except its "Repo-specific" block, which here turns off
 `no-await-in-loop` for the intentional sequential retry loops). Prettier options
 live in `.prettierrc.js`. CI (`.github/workflows/test.yaml`) runs lint,
-format:check and the tests on every matrix job.
+format:check and the tests on every matrix job, plus `npm run test:cjs` on 22
+and 24.
 
 ## Testing
 
@@ -101,20 +103,37 @@ format:check and the tests on every matrix job.
   add tests that require live API credentials or network access.
 - Run `npm test` before committing and make sure it passes.
 
-## Packaging Compatibility (important)
+## Platform constraints (important)
 
-EmailEngine bundles this library into a single executable with `@yao-pkg/pkg`.
-`pkg` snapshots the CommonJS `require` graph at build time, so **every dependency
-must be CommonJS-compatible**. Do not introduce pure-ESM-only packages or
-ESM-only versions of existing packages.
-
-- New ESM-only majors are blocked in `.ncurc.js` via the `reject` list (e.g.
-  `nanoid` moved to ESM and is pinned).
-- `undici` is pinned to the 7.x line; 8.x requires Node >= 22.19.
-- When `npm run update` proposes an upgrade, confirm the new version still
-  publishes a CommonJS build and still loads under `require()` before accepting
-  it. If a package goes ESM-only, add it to the `reject` list in `.ncurc.js` with
-  a one-line comment explaining why.
+- **Node.js 20 is the minimum supported version** (`engines.node` is
+  `>=20.0.0`). Runtime code, tests and tooling must work on Node 20, 22 and 24.
+- **Everything that reaches runtime must be genuinely CommonJS-loadable.**
+  EmailEngine bundles this library into a single executable with
+  `@yao-pkg/pkg`, which snapshots the CommonJS `require` graph at build time and
+  cannot load ES modules. `require()` of this package and of every runtime
+  dependency must work with `--no-experimental-require-module`: Node 22+ (and
+  20.19) enable require(esm) by default, which hides an ESM-only dependency
+  until the pkg binary fails. A CommonJS entry that only wraps a dynamic
+  `import()` of ESM code does not count.
+- **How to check:** `npm run test:cjs` runs the whole suite under
+  `NODE_OPTIONS=--no-experimental-require-module`; CI runs it on Node 22 and 24.
+  `test/commonjs-graph.test.js` requires every runtime dependency, including the
+  jsdom-backed `mimeHtml` of `@postalsys/email-text-tools` that the summary code
+  never loads, so the guard sees the whole graph.
+- **Pins:** never add or upgrade to an ESM-only dependency. Hold the last
+  CommonJS major in `.ncurc.js` (`reject` or `target`) with a one-line comment
+  explaining why; `npm run update` honors it. `nanoid`, `htmlparser2` (10.x),
+  `domutils` (3.x), `dom-serializer` (2.x) and `@asamuzakjp/css-color` are
+  rejected; `undici` is held to the 7.x line by `target` (8.x requires
+  Node >= 22.19). When `npm run update` proposes an upgrade, confirm
+  `npm run test:cjs` still passes before accepting it.
+- **The jsdom chain:** `@postalsys/email-text-tools` -> jsdom -> cssstyle ->
+  `@asamuzakjp/css-color` >=4.1.2 pulls in `@csstools/*` v4, which are pure
+  ESM. `package.json` `"overrides"` holds `@asamuzakjp/css-color` at 4.1.1 so
+  this repo's own tests and CI exercise the CommonJS graph. Overrides do not
+  propagate to consumers: an app installing this package resolves css-color
+  itself, and EmailEngine carries its own identical override and `.ncurc.js`
+  reject.
 
 ## Dependency Management
 
