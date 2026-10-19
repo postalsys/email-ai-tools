@@ -1,5 +1,17 @@
 # Changelog
 
+## [2.3.0](https://github.com/postalsys/email-ai-tools/compare/v2.2.8...v2.3.0) (2026-10-19)
+
+
+### Features
+
+* migrate to TypeScript with ES module and CommonJS builds ([78ab1f1](https://github.com/postalsys/email-ai-tools/commit/78ab1f1779624cd6e60616f574fd57d1eec097bf))
+
+
+### Bug Fixes
+
+* bump email-text-tools to 2.5.0 ([c102e8e](https://github.com/postalsys/email-ai-tools/commit/c102e8e4da0b91d6b24eda1beefa3e68ddc6f329))
+
 ## [2.2.8](https://github.com/postalsys/email-ai-tools/compare/v2.2.7...v2.2.8) (2026-10-19)
 
 
