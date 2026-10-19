@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.2.8](https://github.com/postalsys/email-ai-tools/compare/v2.2.7...v2.2.8) (2026-10-19)
+
+
+### Bug Fixes
+
+* bump libmime to 5.5.2 and email-text-tools to 2.4.26 ([ee4325c](https://github.com/postalsys/email-ai-tools/commit/ee4325ce083a30c5c43e9efa54ec5e437ffc551c))
+
 ## [2.2.7](https://github.com/postalsys/email-ai-tools/compare/v2.2.6...v2.2.7) (2026-10-18)
 
 
