@@ -34,7 +34,7 @@
         "prettier": "3.9.10"
     },
     "dependencies": {
-        "@postalsys/email-text-tools": "2.4.26",
+        "@postalsys/email-text-tools": "2.5.0",
         "dom-serializer": "2.0.0",
         "domutils": "3.2.2",
         "htmlparser2": "10.1.0",
