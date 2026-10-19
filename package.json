@@ -41,6 +41,9 @@
         "tldts": "7.4.18",
         "undici": "7.30.1"
     },
+    "overrides": {
+        "@asamuzakjp/css-color": "4.1.1"
+    },
     "engines": {
         "node": ">=20.0.0"
     }

@@ -13,6 +13,11 @@ module.exports = {
         // CommonJS builds are 10.x, 3.x and 2.x
         'htmlparser2',
         'domutils',
-        'dom-serializer'
+        'dom-serializer',
+        // @asamuzakjp/css-color >=4.1.2 pulls in @csstools/* which are pure ESM, so require(jsdom) fails
+        // without require(esm) (email-text-tools -> jsdom -> cssstyle -> @asamuzakjp/css-color). Held at
+        // 4.1.1 through package.json "overrides"; overrides do not propagate to consumers, EmailEngine
+        // carries its own.
+        '@asamuzakjp/css-color'
     ]
 };
