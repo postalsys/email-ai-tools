@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.3.1](https://github.com/postalsys/email-ai-tools/compare/v2.3.0...v2.3.1) (2026-10-20)
+
+
+### Bug Fixes
+
+* bump tldts to 7.4.19 ([e3f7910](https://github.com/postalsys/email-ai-tools/commit/e3f791065e50b0a75840c5fd0c7335a92488f882))
+
 ## [2.3.0](https://github.com/postalsys/email-ai-tools/compare/v2.2.8...v2.3.0) (2026-10-19)
 
 
