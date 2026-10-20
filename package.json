@@ -81,10 +81,10 @@
         "eslint": "10.13.0",
         "eslint-config-prettier": "10.1.8",
         "globals": "17.13.0",
-        "mailparser": "3.9.47",
+        "mailparser": "3.10.0",
         "prettier": "3.9.10",
         "typescript": "6.0.3",
-        "typescript-eslint": "8.71.2"
+        "typescript-eslint": "8.72.0"
     },
     "dependencies": {
         "@postalsys/email-text-tools": "2.5.0",
@@ -92,7 +92,7 @@
         "domutils": "3.2.2",
         "htmlparser2": "10.1.0",
         "libmime": "5.5.2",
-        "tldts": "7.4.18",
+        "tldts": "7.4.19",
         "undici": "7.30.1"
     },
     "overrides": {
