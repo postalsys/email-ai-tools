@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.4.0](https://github.com/postalsys/email-ai-tools/compare/v2.3.2...v2.4.0) (2026-10-29)
+
+
+### Features
+
+* list the signing domains of passing DKIM signatures in parseAuthenticationResults ([e6d468e](https://github.com/postalsys/email-ai-tools/commit/e6d468e7ed4ce71d27da756d540a89cbdd7259b4))
+
 ## [2.3.2](https://github.com/postalsys/email-ai-tools/compare/v2.3.1...v2.3.2) (2026-10-22)
 
 
