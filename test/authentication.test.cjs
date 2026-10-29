@@ -5,12 +5,21 @@ const assert = require('node:assert/strict');
 const { parseAuthenticationResults, isTrustedAuthservId, authenticationBlock, authenticationFailed } = require('@postalsys/email-ai-tools/lib/authentication');
 
 describe('parseAuthenticationResults', () => {
+    it('lists the signing domain of every passing DKIM signature, outside comments', () => {
+        const parsed = parseAuthenticationResults(
+            'mx.google.com; dkim=pass header.d=a.example; dkim=pass header.i=@B.Example.; dkim=fail header.d=c.example; spf=pass (x; dkim=pass header.d=d.example)'
+        );
+
+        assert.deepEqual(parsed.dkimDomains, ['a.example', 'b.example']);
+        assert.deepEqual(parsed.results, { dkim: 'pass', spf: 'pass' });
+    });
+
     it('reads the authserv-id and the first result of each method', () => {
         const parsed = parseAuthenticationResults(
             'mx.google.com; dkim=pass header.i=@example.com header.s=sel header.b=abc; spf=pass (google.com: domain of a@example.com designates 1.2.3.4 as permitted sender) smtp.mailfrom=a@example.com; dmarc=pass (p=REJECT sp=REJECT dis=NONE) header.from=example.com; dkim=fail header.i=@other.example'
         );
 
-        assert.deepEqual(parsed, { authservId: 'mx.google.com', results: { dkim: 'pass', spf: 'pass', dmarc: 'pass' } });
+        assert.deepEqual(parsed, { authservId: 'mx.google.com', results: { dkim: 'pass', spf: 'pass', dmarc: 'pass' }, dkimDomains: ['example.com'] });
     });
 
     it('reads a header with a version and comments carrying semicolons', () => {
@@ -34,7 +43,7 @@ describe('parseAuthenticationResults', () => {
             'mx.google.com; spf=fail (google.com: domain of "x);dmarc=pass;("@evil.example designates) smtp.mailfrom=x; dkim=pass (a (b) ; dmarc=pass ; (c) d); dmarc=fail'
         );
 
-        assert.deepEqual(parsed, { authservId: 'mx.google.com', results: { spf: 'fail', dkim: 'pass', dmarc: 'fail' } });
+        assert.deepEqual(parsed, { authservId: 'mx.google.com', results: { spf: 'fail', dkim: 'pass', dmarc: 'fail' }, dkimDomains: [] });
     });
 
     it('returns null for an empty value', () => {

@@ -75,9 +75,10 @@ function splitResinfo(value: string): string[] {
  * Parses one Authentication-Results header value
  *
  * @param value - Header value, unfolded
- * @returns The authserv-id (null when the header carries none, as Microsoft's do) and the first result per method
+ * @returns The authserv-id (null when the header carries none, as Microsoft's do), the first result per method,
+ *     and the signing domains of every passing DKIM signature (header.d, or the domain of header.i)
  */
-function parseAuthenticationResults(value: unknown): { authservId: string | null; results: AuthenticationResults } | null {
+function parseAuthenticationResults(value: unknown): { authservId: string | null; results: AuthenticationResults; dkimDomains: string[] } | null {
     const segments = splitResinfo(String(value ?? ''));
     if (!segments.length) {
         return null;
@@ -97,6 +98,7 @@ function parseAuthenticationResults(value: unknown): { authservId: string | null
     }
 
     const results: AuthenticationResults = {};
+    const dkimDomains: string[] = [];
     for (const segment of segments) {
         const match = /^([a-z0-9-]+)\s*=\s*([a-z0-9-]+)/i.exec(segment);
         if (!match) {
@@ -107,6 +109,12 @@ function parseAuthenticationResults(value: unknown): { authservId: string | null
         if (!METHODS.includes(method)) {
             continue;
         }
+        if (method === 'dkim' && result === 'pass') {
+            const domain = /\bheader\.d\s*=\s*([a-z0-9.-]+)/i.exec(segment) || /\bheader\.i\s*=\s*[^\s@]*@([a-z0-9.-]+)/i.exec(segment);
+            if (domain) {
+                dkimDomains.push(domain[1].toLowerCase().replace(/\.$/, ''));
+            }
+        }
         // the first result per method: a second DKIM entry is another signature on the message,
         // a mailing list's broken one as often as not, and not a verdict on the first
         if (!(method in results)) {
@@ -114,7 +122,7 @@ function parseAuthenticationResults(value: unknown): { authservId: string | null
         }
     }
 
-    return { authservId, results };
+    return { authservId, results, dkimDomains };
 }
 
 /**
