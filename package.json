@@ -87,7 +87,7 @@
         "typescript-eslint": "8.72.1"
     },
     "dependencies": {
-        "@postalsys/email-text-tools": "2.6.2",
+        "@postalsys/email-text-tools": "2.6.3",
         "dom-serializer": "2.0.0",
         "domutils": "3.2.2",
         "htmlparser2": "10.1.0",
