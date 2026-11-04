@@ -164,17 +164,13 @@ Prettier options live in `.prettierrc.cjs`. CI (`.github/workflows/test.yaml`) r
 - **Pins:** never add or upgrade to an ESM-only dependency. Hold the last
   CommonJS major in `.ncurc.cjs` (`reject` or `target`) with a one-line comment
   explaining why; `npm run update` honors it. `nanoid`, `htmlparser2` (10.x),
-  `domutils` (3.x), `dom-serializer` (2.x) and `@asamuzakjp/css-color` are
+  `domutils` (3.x) and `dom-serializer` (2.x) are
   rejected; `undici` is held to the 7.x line by `target` (8.x requires
   Node >= 22.19). When `npm run update` proposes an upgrade, confirm
   `npm run test:cjs` still passes before accepting it.
-- **The jsdom chain:** `@postalsys/email-text-tools` -> jsdom -> cssstyle ->
-  `@asamuzakjp/css-color` >=4.1.2 pulls in `@csstools/*` v4, which are pure
-  ESM. `package.json` `"overrides"` holds `@asamuzakjp/css-color` at 4.1.1 so
-  this repo's own tests and CI exercise the CommonJS graph. Overrides do not
-  propagate to consumers: an app installing this package resolves css-color
-  itself, and EmailEngine carries its own identical override and `.ncurc.js`
-  reject.
+- **jsdom is not in this tree.** `@postalsys/email-text-tools` ships it as a
+  CommonJS bundle (`dist/vendor/jsdom.cjs`, from 2.6.3), so its ES module only
+  dependencies never reach this package and no override is needed for them.
 
 ## Dependency Management
 
