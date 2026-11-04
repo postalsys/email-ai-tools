@@ -73,7 +73,8 @@ describe('Packed package', () => {
             fs.rmSync(dir, { recursive: true, force: true });
         }
         assert.equal(result.status, 0, result.stderr);
-        const files = JSON.parse(result.stdout)[0].files.map(file => file.path);
+        // npm 12 keys the report by package name, older npm returns an array
+        const files = Object.values(JSON.parse(result.stdout))[0].files.map(file => file.path);
         for (const format of ['cjs', 'esm']) {
             for (const name of ['index', 'package-info', ...LIB_MODULES.map(name => 'lib/' + name)]) {
                 assert.ok(files.includes(`dist/${format}/${name}.js`), `dist/${format}/${name}.js is packed`);
