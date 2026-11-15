@@ -1,5 +1,16 @@
 # Changelog
 
+## [3.0.0](https://github.com/postalsys/email-ai-tools/compare/v2.4.3...v3.0.0) (2026-11-15)
+
+
+### ⚠ BREAKING CHANGES
+
+* Node.js 22.22.2, 24.15.0 or newer is required (engines.node ^22.22.2 || ^24.15.0 || >=26.0.0).
+
+### Bug Fixes
+
+* require Node.js 22, move to undici 8 and email-text-tools 3 ([f8cd424](https://github.com/postalsys/email-ai-tools/commit/f8cd424e977c03b3451142280064e735554163c1))
+
 ## [2.4.3](https://github.com/postalsys/email-ai-tools/compare/v2.4.2...v2.4.3) (2026-11-10)
 
 
