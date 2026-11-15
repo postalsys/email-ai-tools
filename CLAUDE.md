@@ -110,7 +110,7 @@ Prettier options live in `.prettierrc.cjs`. CI (`.github/workflows/test.yaml`) r
   into `dist/esm` and with `tsconfig.cjs.json` into `dist/cjs`, writes a `package.json` pinning
   the module format into each, and appends one line to `dist/cjs/index.js` (see below).
   `tsconfig.base.json`: strict, `exactOptionalPropertyTypes`, `erasableSyntaxOnly`,
-  `isolatedModules`. `tsconfig.json` is the type-check. `@types/node` stays on 20.x and
+  `isolatedModules`. `tsconfig.json` is the type-check. `@types/node` stays on 22.x and
   `typescript` on 6.x (`.ncurc.cjs`). The layout follows `../pubface` and `../nodemailer`.
 - **Every requireable path of the pre-TypeScript package still resolves**: the `exports` map serves
   `.`, `./index`, `./index.js`, `./lib/<name>` and `./lib/<name>.js` (ES module build for
@@ -144,20 +144,22 @@ Prettier options live in `.prettierrc.cjs`. CI (`.github/workflows/test.yaml`) r
 
 ## Platform constraints (important)
 
-- **Node.js 20 is the minimum supported version** (`engines.node` is
-  `>=20.0.0`). Runtime code, tests and tooling must work on Node 20, 22 and 24.
+- **Node.js 22 is the minimum supported version** (`engines.node` is
+  `^22.22.2 || ^24.15.0 || >=26.0.0`, the range of the jsdom bundled in
+  `@postalsys/email-text-tools`; undici 8 alone needs 22.19). Runtime code, tests and tooling
+  must work on Node 22, 24 and later.
 - **Everything that reaches runtime must be genuinely CommonJS-loadable.**
   EmailEngine bundles this library into a single executable with
   `@yao-pkg/pkg`, which snapshots the CommonJS `require` graph at build time and
   cannot load ES modules. `require()` of this package and of every runtime
-  dependency must work with `--no-experimental-require-module`: Node 22+ (and
-  20.19) enable require(esm) by default, which hides an ESM-only dependency
+  dependency must work with `--no-experimental-require-module`: Node 22+
+  enables require(esm) by default, which hides an ESM-only dependency
   until the pkg binary fails. A CommonJS entry that only wraps a dynamic
   `import()` of ESM code does not count.
 - **Keep the dual build.** Never drop the CommonJS output or make the CommonJS entry depend on
   ESM-only syntax.
 - **How to check:** `npm run test:cjs` runs the whole CommonJS suite under
-  `NODE_OPTIONS=--no-experimental-require-module`; CI runs it on Node 22 and later.
+  `NODE_OPTIONS=--no-experimental-require-module`; CI runs it on every Node version it tests.
   `test/commonjs-graph.test.cjs` requires every runtime dependency, including the
   jsdom-backed `mimeHtml` of `@postalsys/email-text-tools` that the summary code
   never loads, so the guard sees the whole graph.
