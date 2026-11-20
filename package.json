@@ -84,16 +84,16 @@
         "mailparser": "3.14.5",
         "prettier": "3.10.1",
         "typescript": "6.0.3",
-        "typescript-eslint": "8.72.2"
+        "typescript-eslint": "8.73.0"
     },
     "dependencies": {
-        "@postalsys/email-text-tools": "3.0.2",
+        "@postalsys/email-text-tools": "3.1.1",
         "dom-serializer": "2.0.0",
         "domutils": "3.2.2",
         "htmlparser2": "10.1.0",
         "libmime": "5.6.5",
-        "tldts": "7.5.4",
-        "undici": "8.12.4"
+        "tldts": "7.5.5",
+        "undici": "8.13.0"
     },
     "engines": {
         "node": "^22.22.2 || ^24.15.0 || >=26.0.0"
