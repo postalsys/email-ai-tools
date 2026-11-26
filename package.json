@@ -76,7 +76,7 @@
     },
     "homepage": "https://github.com/postalsys/email-ai-tools#readme",
     "devDependencies": {
-        "@types/node": "22.20.5",
+        "@types/node": "22.20.7",
         "c8": "12.0.0",
         "eslint": "10.15.0",
         "eslint-config-prettier": "10.1.8",
@@ -84,16 +84,16 @@
         "mailparser": "3.15.0",
         "prettier": "3.10.1",
         "typescript": "6.0.3",
-        "typescript-eslint": "8.73.0"
+        "typescript-eslint": "8.74.0"
     },
     "dependencies": {
-        "@postalsys/email-text-tools": "3.1.1",
+        "@postalsys/email-text-tools": "3.1.2",
         "dom-serializer": "2.0.0",
         "domutils": "3.2.2",
         "htmlparser2": "10.1.0",
         "libmime": "5.6.5",
-        "tldts": "7.5.5",
-        "undici": "8.13.0"
+        "tldts": "7.6.0",
+        "undici": "8.13.1"
     },
     "engines": {
         "node": "^22.22.2 || ^24.15.0 || >=26.0.0"
