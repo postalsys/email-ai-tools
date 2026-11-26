@@ -1,5 +1,12 @@
 # Changelog
 
+## [3.0.4](https://github.com/postalsys/email-ai-tools/compare/v3.0.3...v3.0.4) (2026-11-26)
+
+
+### Bug Fixes
+
+* update dependencies ([f0e9a0d](https://github.com/postalsys/email-ai-tools/commit/f0e9a0d042221d5d8530bfb7bb31a284f419a15a))
+
 ## [3.0.3](https://github.com/postalsys/email-ai-tools/compare/v3.0.2...v3.0.3) (2026-11-20)
 
 
